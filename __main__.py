@@ -4,7 +4,7 @@ import logging
 import tkinter.filedialog as filedialog
 
 from models import Game, CognitiveCategory, CognitiveFunction, Material
-from database import Database
+from database import Database, DuplicateError
 
 logger = logging.getLogger(__name__)
 
@@ -62,23 +62,27 @@ class Window(tk.Tk):
         ttk.Label(self._add_game_frame, text="Categories").pack()
         self._add_game_categories = {}
         for category in self.db.get_all_cognitive_categories():
+            frame = ttk.Frame(self._add_game_frame)
+            frame.pack(anchor=tk.W)
             var = tk.BooleanVar()
-            chk = ttk.Checkbutton(
-                self._add_game_frame, text=category.name, variable=var
-            )
-            chk.pack(anchor=tk.W)
-            self._add_game_categories[category.id] = var  # Use category.id as the key
+            chk = ttk.Checkbutton(frame, text=category.name, variable=var)
+            chk.pack(side=tk.LEFT)
+            weight_entry = ttk.Entry(frame, width=5)
+            weight_entry.pack(side=tk.LEFT, padx=5)
+            self._add_game_categories[category.id] = (var, weight_entry)
 
         # Functions
         ttk.Label(self._add_game_frame, text="Functions").pack()
         self._add_game_functions = {}
         for function in self.db.get_all_cognitive_functions():
+            frame = ttk.Frame(self._add_game_frame)
+            frame.pack(anchor=tk.W)
             var = tk.BooleanVar()
-            chk = ttk.Checkbutton(
-                self._add_game_frame, text=function.name, variable=var
-            )
-            chk.pack(anchor=tk.W)
-            self._add_game_functions[function.id] = var  # Use function.id as the key
+            chk = ttk.Checkbutton(frame, text=function.name, variable=var)
+            chk.pack(side=tk.LEFT)
+            weight_entry = ttk.Entry(frame, width=5)
+            weight_entry.pack(side=tk.LEFT, padx=5)
+            self._add_game_functions[function.id] = (var, weight_entry)
 
         # Add Game Button
         self._add_game_button = ttk.Button(
@@ -97,40 +101,6 @@ class Window(tk.Tk):
         if file_path:
             self._add_game_image_path.set(file_path)
 
-    def _add_game_to_db(self):
-        title = self._add_game_title.get()
-        description = self._add_game_description.get()
-        image = (
-            self._add_game_image_path.get()
-        )  # Updated to use the selected image path
-        materials = [
-            material for material, var in self._add_game_materials.items() if var.get()
-        ]
-        categories = [
-            category_id
-            for category_id, var in self._add_game_categories.items()
-            if var.get()
-        ]
-        functions = [
-            function_id
-            for function_id, var in self._add_game_functions.items()
-            if var.get()
-        ]
-
-        game = Game(
-            title=title,
-            description=description,
-            image=image,
-            materials=materials,
-            categories=[
-                (CognitiveCategory(id=category_id), 1) for category_id in categories
-            ],  # Default weight of 1
-            functions=[
-                (CognitiveFunction(id=function_id), 1) for function_id in functions
-            ],  # Default weight of 1
-        )
-        self.db.add_game(game)
-
     def _setup_add_cognitive_category(self):
         self._add_cognitive_category_frame = ttk.Frame(self)
         self._add_cognitive_category_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -143,7 +113,9 @@ class Window(tk.Tk):
         )
         self._add_cognitive_category_title.pack()
         self._add_cognitive_category_button = ttk.Button(
-            self._add_cognitive_category_frame, text="Add a Cognitive Category"
+            self._add_cognitive_category_frame,
+            text="Add a Cognitive Category",
+            command=self._add_cognitive_category_to_db,
         )
         self._add_cognitive_category_button.pack()
 
@@ -159,9 +131,104 @@ class Window(tk.Tk):
         )
         self._add_cognitive_function_title.pack()
         self._add_cognitive_function_button = ttk.Button(
-            self._add_cognitive_function_frame, text="Add a Cognitive Function"
+            self._add_cognitive_function_frame,
+            text="Add a Cognitive Function",
+            command=self._add_cognitive_function_to_db,
         )
         self._add_cognitive_function_button.pack()
+
+    def _add_game_to_db(self):
+        title = self._add_game_title.get()
+        if title == "":
+            ttk.Label(self, text="Title cannot be empty!").pack()
+            return
+
+        description = self._add_game_description.get()
+        image = self._add_game_image_path.get()
+        materials = [
+            material for material, var in self._add_game_materials.items() if var.get()
+        ]
+        categories = [
+            (
+                self.db.get_cognitive_category_by_id(category_id),
+                int(weight_entry.get()) if weight_entry.get().isdigit() else 1,
+            )
+            for category_id, (var, weight_entry) in self._add_game_categories.items()
+            if var.get()
+        ]
+        functions = [
+            (
+                self.db.get_cognitive_function_by_id(function_id),
+                int(weight_entry.get()) if weight_entry.get().isdigit() else 1,
+            )
+            for function_id, (var, weight_entry) in self._add_game_functions.items()
+            if var.get()
+        ]
+
+        for item in categories + functions:
+            if item[1] < 0 and item[1] > 10:
+                ttk.Label(self, text="Weight must be between 0 and 10!").pack()
+                return
+
+        game = Game(
+            title=title,
+            description=description,
+            image=image,
+            materials=materials,
+            categories=categories,
+            functions=functions,
+        )
+        try:
+            self.db.add_game(game)
+            ttk.Label(self, text="Game added!").pack()
+            logger.info(f"Game added: {game.title}")
+        except DuplicateError as e:
+            ttk.Label(self, text="This game already exist!").pack()
+            logger.error(f"Duplicate game error: {e}")
+
+    def _add_cognitive_category_to_db(self):
+        title = self._add_cognitive_category_title.get()
+        if title == "":
+            ttk.Label(self, text="Title cannot be empty!").pack()
+            return
+
+        category = CognitiveCategory(name=title)
+
+        try:
+            self.db.add_cognitive_category(category)
+            ttk.Label(self, text="Cognitive Category added!").pack()
+            logger.info(f"Cognitive Category added: {category.name}")
+            self._refresh_cognitive_categories()  # Refresh categories in _add_game_frame
+        except DuplicateError as e:
+            ttk.Label(self, text="This cognitive category already exist!").pack()
+            logger.error(f"Duplicate cognitive category error: {e}")
+
+    def _add_cognitive_function_to_db(self):
+        title = self._add_cognitive_function_title.get()
+        if title == "":
+            ttk.Label(self, text="Title cannot be empty!").pack()
+            return
+
+        function = CognitiveFunction(name=title)
+
+        try:
+            self.db.add_cognitive_function(function)
+            ttk.Label(self, text="Cognitive Function added!").pack()
+            logger.info(f"Cognitive Function added: {function.name}")
+            self._refresh_cognitive_functions()  # Refresh functions in _add_game_frame
+        except DuplicateError as e:
+            ttk.Label(self, text="This cognitive function already exist!").pack()
+            logger.error(f"Duplicate cognitive function error: {e}")
+
+    def _refresh_cognitive_categories(self):
+        # Clear existing categories
+        # TODO
+        pass
+
+    def _refresh_cognitive_functions(self):
+        # Clear existing functions
+        # TODO
+        pass
 
 
 if __name__ == "__main__":
