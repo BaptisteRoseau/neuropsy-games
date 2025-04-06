@@ -1,16 +1,37 @@
 import sqlite3
 import logging
 import json
+from functools import wraps
 
 from models import Game, CognitiveCategory, CognitiveFunction, Material
 
 logger = logging.getLogger(__name__)
 
+class DatabaseError(Exception):
+    """Custom exception for database errors."""
+    pass
+
+class DuplicateError(DatabaseError):
+    """The entry already exists and a unique constraint has been violated."""
+    pass
+
+def handle_sqlite_exceptions(func):
+    """Decorator to handle sqlite3 exceptions and convert them to custom exceptions."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except sqlite3.IntegrityError as e:
+            raise DuplicateError("A unique constraint was violated.") from e
+        except sqlite3.Error as e:
+            raise DatabaseError("An error occurred with the database.") from e
+    return wrapper
 
 class Database:
     def __init__(self, file: str = "DO_NOT_REMOVE.db"):
         self.con = sqlite3.connect(file)
 
+    @handle_sqlite_exceptions
     def setup(self):
         logger.info("Setting up database")
         with open("database.sql", "r") as f:
@@ -18,6 +39,7 @@ class Database:
             self.con.executescript(schema)
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def add_game(self, game: Game):
         logger.info("Adding game " + game.title)
         self.con.execute(
@@ -44,6 +66,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def update_game(self, game: Game):
         if game.id is None or game.id < 0:
             raise ValueError("Game ID must be a positive number")
@@ -67,6 +90,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def delete_game(self, game_id: int):
         if game_id is None or game_id < 0:
             raise ValueError("Game ID must be a positive number")
@@ -74,6 +98,7 @@ class Database:
         self.con.execute("DELETE FROM games WHERE id = ?", (game_id,))
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def add_cognitive_category(self, category: CognitiveCategory):
         logger.info("Adding cognitive category" + category.name)
         self.con.execute(
@@ -85,6 +110,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def update_cognitive_category(self, category: CognitiveCategory):
         if category.id is None or category.id < 0:
             raise ValueError("Cognitive Category ID must be a positive number")
@@ -99,6 +125,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def delete_cognitive_category(self, category_id: int):
         if category_id is None or category_id < 0:
             raise ValueError("Cognitive Category ID must be a positive number")
@@ -108,6 +135,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def add_cognitive_function(self, function: CognitiveFunction):
         logger.info("Adding cognitive function" + function.name)
         self.con.execute(
@@ -119,6 +147,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def update_cognitive_function(self, function: CognitiveFunction):
         if function.id is None or function.id < 0:
             raise ValueError("Cognitive Function ID must be a positive number")
@@ -133,6 +162,7 @@ class Database:
         )
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def delete_cognitive_function(self, function_id: int):
         if function_id is None or function_id < 0:
             raise ValueError("Cognitive Function ID must be a positive number")
@@ -140,6 +170,7 @@ class Database:
         self.con.execute("DELETE FROM cognitive_functions WHERE id = ?", (function_id,))
         self.con.commit()
 
+    @handle_sqlite_exceptions
     def get_game(self, game_id: int = None, game_title: str = None) -> list[Game]:
         logger.info("Getting game")
         if game_id:
@@ -174,6 +205,7 @@ class Database:
             games.append(game)
         return games
 
+    @handle_sqlite_exceptions
     def get_cognitive_category(
         self, category_id: int = None, category_name: str = None
     ) -> list[CognitiveCategory]:
@@ -197,6 +229,7 @@ class Database:
             categories.append(category)
         return categories
 
+    @handle_sqlite_exceptions
     def get_cognitive_function(
         self, function_id: int = None, function_name: str = None
     ) -> list[CognitiveFunction]:
@@ -220,6 +253,7 @@ class Database:
             functions.append(function)
         return functions
 
+    @handle_sqlite_exceptions
     def get_all_games(self) -> list[Game]:
         logger.info("Getting all games")
         cursor = self.con.execute("SELECT * FROM games")
@@ -237,6 +271,7 @@ class Database:
             games.append(game)
         return games
 
+    @handle_sqlite_exceptions
     def get_all_cognitive_categories(self) -> list[CognitiveCategory]:
         logger.info("Getting all cognitive categories")
         cursor = self.con.execute("SELECT * FROM cognitive_categories")
@@ -247,6 +282,7 @@ class Database:
             categories.append(category)
         return categories
 
+    @handle_sqlite_exceptions
     def get_all_cognitive_functions(self) -> list[CognitiveFunction]:
         logger.info("Getting all cognitive functions")
         cursor = self.con.execute("SELECT * FROM cognitive_functions")
@@ -256,3 +292,13 @@ class Database:
             function = CognitiveFunction(id=row[0], name=row[1])
             functions.append(function)
         return functions
+
+    @handle_sqlite_exceptions
+    def get_cognitive_category_by_id(self, category_id: int) -> CognitiveCategory:
+        # Replace with actual database query logic
+        return CognitiveCategory(id=category_id, name="Category Name")
+
+    @handle_sqlite_exceptions
+    def get_cognitive_function_by_id(self, function_id: int) -> CognitiveFunction:
+        # Replace with actual database query logic
+        return CognitiveFunction(id=function_id, name="Function Name")
