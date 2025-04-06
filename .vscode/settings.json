@@ -1,0 +1,14 @@
+{
+    "cSpell.words": [
+        "Neuropsy"
+    ],
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "DO_NOT_REMOVE.db",
+            "name": "Database"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
