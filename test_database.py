@@ -248,6 +248,28 @@ class TestDatabase(unittest.TestCase):
             str(context.exception), "Cognitive Function ID must be a positive number"
         )
 
+    def test_get_game_with_empty_fields(self):
+        game = Game(
+            title="Game with Empty Fields",
+            description="A game with empty fields",
+            image=None,
+            materials=[],  # Empty materials
+            categories=[],  # Empty categories
+            functions=[],  # Empty functions
+        )
+        self.db.add_game(game)
+
+        games = self.db.get_game(game_title="Game with Empty Fields")
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Game with Empty Fields")
+        self.assertEqual(games[0].materials, [])
+        self.assertEqual(games[0].categories, [])
+        self.assertEqual(games[0].functions, [])
+
+    def test_get_game_no_matches(self):
+        games = self.db.get_game(game_title="Nonexistent Game")
+        self.assertEqual(len(games), 0)  # Ensure no games are returned
+
 
 if __name__ == "__main__":
     unittest.main()

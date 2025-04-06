@@ -7,16 +7,22 @@ from models import Game, CognitiveCategory, CognitiveFunction, Material
 
 logger = logging.getLogger(__name__)
 
+
 class DatabaseError(Exception):
     """Custom exception for database errors."""
+
     pass
+
 
 class DuplicateError(DatabaseError):
     """The entry already exists and a unique constraint has been violated."""
+
     pass
+
 
 def handle_sqlite_exceptions(func):
     """Decorator to handle sqlite3 exceptions and convert them to custom exceptions."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -25,7 +31,9 @@ def handle_sqlite_exceptions(func):
             raise DuplicateError("A unique constraint was violated.") from e
         except sqlite3.Error as e:
             raise DatabaseError("An error occurred with the database.") from e
+
     return wrapper
+
 
 class Database:
     def __init__(self, file: str = "DO_NOT_REMOVE.db"):
@@ -190,16 +198,16 @@ class Database:
                 title=row[1],
                 description=row[2],
                 materials=[
-                    Material[material] for material in json.loads(row[5])
-                ],  # Deserialize materials
+                    Material[material] for material in json.loads(row[5] or "[]")
+                ],  # Handle None or empty string for materials
                 categories=[
                     (CognitiveCategory(id=None, name=cat[0]), cat[1])
-                    for cat in json.loads(row[4])
-                ],  # Deserialize categories
+                    for cat in json.loads(row[4] or "[]")
+                ],  # Handle None or empty string for categories
                 functions=[
                     (CognitiveFunction(id=None, name=func[0]), func[1])
-                    for func in json.loads(row[3])
-                ],  # Deserialize functions
+                    for func in json.loads(row[3] or "[]")
+                ],  # Handle None or empty string for functions
                 image=row[6],
             )
             games.append(game)
