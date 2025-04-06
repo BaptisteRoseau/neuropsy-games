@@ -5,52 +5,12 @@ import tkinter.filedialog as filedialog
 
 from models import Game, CognitiveCategory, CognitiveFunction, Material
 from database import Database, DuplicateError
+from ui.search_bar import SearchBarWithAutocomplete
 
 logger = logging.getLogger(__name__)
 
-
-class SearchBarWithAutocomplete(ttk.Frame):
-    def __init__(self, parent, get_game_callback):
-        super().__init__(parent)
-        self.get_game_callback = get_game_callback
-
-        # Search bar (Entry widget)
-        self.search_var = tk.StringVar()
-        self.search_entry = ttk.Entry(self, textvariable=self.search_var)
-        self.search_entry.pack(fill=tk.X, padx=5, pady=5)
-        self.search_entry.bind("<KeyRelease>", self._on_key_release)
-
-        # Listbox for autocompletion
-        self.result_listbox = tk.Listbox(self)
-        self.result_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.result_listbox.bind("<<ListboxSelect>>", self._on_select)
-
-    def _on_key_release(self, event):
-        # Fetch matching game titles
-        query = self.search_var.get()
-        if len(query) >= 2:
-            try:
-                matches = [game.title for game in self.get_game_callback(query)]
-                self._update_listbox(matches)
-            except Exception as e:
-                logger.error(f"Error fetching games: {e}")
-                self._update_listbox([])  # Clear the listbox on error
-        else:
-            self._update_listbox([])
-
-    def _update_listbox(self, matches):
-        # Clear the Listbox and populate it with new matches
-        self.result_listbox.delete(0, tk.END)
-        for match in matches:
-            self.result_listbox.insert(tk.END, match)
-
-    def _on_select(self, event):
-        # Handle selection from the Listbox
-        selected_index = self.result_listbox.curselection()
-        if selected_index:
-            selected_game = self.result_listbox.get(selected_index)
-            print(f"Selected game: {selected_game}")  # Replace with desired action
-
+#FIXME: Saved cognitive functions and categories are saved under "Function Name" 
+# and "Category Name" instead of their IDs.
 
 class Window(tk.Tk):
     def __init__(self, db: Database):
@@ -62,9 +22,7 @@ class Window(tk.Tk):
         self._setup_add_game()
         self._setup_add_cognitive_category()
         self._setup_add_cognitive_function()
-        self.search_bar = SearchBarWithAutocomplete(
-            self, lambda query: self.db.get_game(game_title=query)
-        )
+        self.search_bar = SearchBarWithAutocomplete(self, self.db)
         self.search_bar.pack(fill=tk.X, padx=10, pady=10)
 
     def _setup_add_game(self):
@@ -114,9 +72,14 @@ class Window(tk.Tk):
             var = tk.BooleanVar()
             chk = ttk.Checkbutton(frame, text=category.name, variable=var)
             chk.pack(side=tk.LEFT)
-            weight_entry = ttk.Entry(frame, width=5)
-            weight_entry.pack(side=tk.LEFT, padx=5)
-            self._add_game_categories[category.id] = (var, weight_entry)
+            weight_slider = ttk.Scale(
+                frame,
+                from_=0,
+                to=10,
+                orient="horizontal",
+            )
+            weight_slider.pack(side=tk.LEFT, padx=5)
+            self._add_game_categories[category.id] = (var, weight_slider)
 
         # Functions
         ttk.Label(self._add_game_frame, text="Functions").pack()
@@ -127,9 +90,18 @@ class Window(tk.Tk):
             var = tk.BooleanVar()
             chk = ttk.Checkbutton(frame, text=function.name, variable=var)
             chk.pack(side=tk.LEFT)
-            weight_entry = ttk.Entry(frame, width=5)
-            weight_entry.pack(side=tk.LEFT, padx=5)
-            self._add_game_functions[function.id] = (var, weight_entry)
+            int_var = tk.IntVar()
+            weight_slider = ttk.Scale(
+                frame,
+                from_=0,
+                to=10,
+                orient="horizontal",
+                variable=int_var,
+                command=lambda value: int_var.set(int(float(value))),
+            )
+            weight_slider.pack(side=tk.LEFT, padx=5)
+            ttk.Label(frame, textvariable=int_var).pack(side=tk.LEFT, padx=5)
+            self._add_game_functions[function.id] = (var, weight_slider)
 
         # Add Game Button
         self._add_game_button = ttk.Button(
@@ -213,7 +185,8 @@ class Window(tk.Tk):
         ]
 
         for item in categories + functions:
-            if item[1] and item[1] < 0 and item[1] > 10:
+            print(item)
+            if item[1] and (item[1] < 0 or item[1] > 10):
                 ttk.Label(self, text="Weight must be between 0 and 10!").pack()
                 return
 
