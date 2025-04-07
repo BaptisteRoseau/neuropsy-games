@@ -300,13 +300,3 @@ class Database:
             function = CognitiveFunction(id=row[0], name=row[1])
             functions.append(function)
         return functions
-
-    @handle_sqlite_exceptions
-    def get_cognitive_category_by_id(self, category_id: int) -> CognitiveCategory:
-        # Replace with actual database query logic
-        return CognitiveCategory(id=category_id, name="Category Name")
-
-    @handle_sqlite_exceptions
-    def get_cognitive_function_by_id(self, function_id: int) -> CognitiveFunction:
-        # Replace with actual database query logic
-        return CognitiveFunction(id=function_id, name="Function Name")
