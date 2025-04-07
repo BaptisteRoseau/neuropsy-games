@@ -1,6 +1,6 @@
 import unittest
 import os
-from database import Database
+from database import Database, NotFoundError
 from models import Game, CognitiveCategory, CognitiveFunction, Material
 
 
@@ -269,6 +269,44 @@ class TestDatabase(unittest.TestCase):
     def test_get_game_no_matches(self):
         games = self.db.get_game(game_title="Nonexistent Game")
         self.assertEqual(len(games), 0)
+
+    def test_get_cognitive_category_by_id(self):
+        # Case: Category exists
+        category = CognitiveCategory(name="Memory")
+        self.db.add_cognitive_category(category)
+
+        categories = self.db.get_cognitive_category(category_name="Memory")
+        category_id = categories[0].id
+
+        fetched_category = self.db.get_cognitive_category_by_id(category_id)
+        self.assertEqual(fetched_category.id, category_id)
+        self.assertEqual(fetched_category.name, "Memory")
+
+        # Case: Category does not exist
+        with self.assertRaises(NotFoundError) as context:
+            self.db.get_cognitive_category_by_id(999)
+        self.assertEqual(
+            str(context.exception), "Cognitive category with ID 999 not found."
+        )
+
+    def test_get_cognitive_function_by_id(self):
+        # Case: Function exists
+        function = CognitiveFunction(name="Attention")
+        self.db.add_cognitive_function(function)
+
+        functions = self.db.get_cognitive_function(function_name="Attention")
+        function_id = functions[0].id
+
+        fetched_function = self.db.get_cognitive_function_by_id(function_id)
+        self.assertEqual(fetched_function.id, function_id)
+        self.assertEqual(fetched_function.name, "Attention")
+
+        # Case: Function does not exist
+        with self.assertRaises(NotFoundError) as context:
+            self.db.get_cognitive_function_by_id(999)
+        self.assertEqual(
+            str(context.exception), "Cognitive function with ID 999 not found."
+        )
 
 
 if __name__ == "__main__":

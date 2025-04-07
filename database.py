@@ -20,6 +20,12 @@ class DuplicateError(DatabaseError):
     pass
 
 
+class NotFoundError(DatabaseError):
+    """The entry already exists and a unique constraint has been violated."""
+
+    pass
+
+
 def handle_sqlite_exceptions(func):
     """Decorator to handle sqlite3 exceptions and convert them to custom exceptions."""
 
@@ -300,3 +306,23 @@ class Database:
             function = CognitiveFunction(id=row[0], name=row[1])
             functions.append(function)
         return functions
+
+    @handle_sqlite_exceptions
+    def get_cognitive_category_by_id(self, category_id: int) -> CognitiveCategory:
+        cursor = self.con.execute(
+            "SELECT * FROM cognitive_categories WHERE id = ?", (category_id,)
+        )
+        result = cursor.fetchone()
+        if result is None:
+            raise NotFoundError(f"Cognitive category with ID {category_id} not found.")
+        return CognitiveCategory(id=result[0], name=result[1])
+
+    @handle_sqlite_exceptions
+    def get_cognitive_function_by_id(self, function_id: int) -> CognitiveFunction:
+        cursor = self.con.execute(
+            "SELECT * FROM cognitive_functions WHERE id = ?", (function_id,)
+        )
+        result = cursor.fetchone()
+        if result is None:
+            raise NotFoundError(f"Cognitive function with ID {function_id} not found.")
+        return CognitiveFunction(id=result[0], name=result[1])

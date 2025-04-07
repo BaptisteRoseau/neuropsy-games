@@ -170,7 +170,7 @@ class Window(tk.Tk):
         categories = [
             (
                 self.db.get_cognitive_category_by_id(category_id),
-                int(weight_entry.get()) if weight_entry.get().isdigit() else None,
+                int(weight_entry.get()) if weight_entry.get() else None,
             )
             for category_id, (var, weight_entry) in self._add_game_categories.items()
             if var.get()
@@ -178,7 +178,7 @@ class Window(tk.Tk):
         functions = [
             (
                 self.db.get_cognitive_function_by_id(function_id),
-                int(weight_entry.get()) if weight_entry.get().isdigit() else None,
+                int(weight_entry.get()) if weight_entry.get() else None,
             )
             for function_id, (var, weight_entry) in self._add_game_functions.items()
             if var.get()
