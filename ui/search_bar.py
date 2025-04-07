@@ -7,7 +7,7 @@ from database import Database
 logger = logging.getLogger(__name__)
 
 
-class SearchBarWithAutocomplete(ttk.Frame):
+class SearchBarWithAutocompleteFrame(ttk.Frame):
     def __init__(self, parent, db: Database):
         super().__init__(parent)
         self.db = db

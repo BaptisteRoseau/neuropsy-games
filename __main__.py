@@ -5,7 +5,8 @@ import tkinter.filedialog as filedialog
 
 from models import Game, CognitiveCategory, CognitiveFunction, Material
 from database import Database, DuplicateError
-from ui.search_bar import SearchBarWithAutocomplete
+from ui.search_bar import SearchBarWithAutocompleteFrame
+from ui.add_game import AddGameFrame
 
 logger = logging.getLogger(__name__)
 
@@ -19,106 +20,64 @@ class Window(tk.Tk):
 
         self.db = db
 
-        self._setup_add_game()
+        self.add_game_frame = AddGameFrame(self, self.db, self._add_game_to_db)
+        self.add_game_frame.pack(fill=tk.X, padx=10, pady=10)
+
         self._setup_add_cognitive_category()
         self._setup_add_cognitive_function()
-        self.search_bar = SearchBarWithAutocomplete(self, self.db)
+        self.search_bar = SearchBarWithAutocompleteFrame(self, self.db)
         self.search_bar.pack(fill=tk.X, padx=10, pady=10)
 
-    def _setup_add_game(self):
-        self._add_game_frame = ttk.Frame(self)
-        self._add_game_frame.pack(fill=tk.X, padx=10, pady=10)
-        ttk.Label(self._add_game_frame, text="Add a Game").pack()
+    def _add_game_to_db(self):
+        title = self.add_game_frame.title_entry.get()
+        if title == "":
+            ttk.Label(self, text="Title cannot be empty!").pack()
+            return
 
-        # Title
-        ttk.Label(self._add_game_frame, text="Title").pack()
-        self._add_game_title = ttk.Entry(self._add_game_frame)
-        self._add_game_title.pack()
-
-        # Description
-        ttk.Label(self._add_game_frame, text="Description").pack()
-        self._add_game_description = ttk.Entry(self._add_game_frame)
-        self._add_game_description.pack()
-
-        # Image
-        ttk.Label(self._add_game_frame, text="Image").pack()
-        self._add_game_image_path = tk.StringVar()
-        self._add_game_image_label = ttk.Label(
-            self._add_game_frame, textvariable=self._add_game_image_path
-        )
-        self._add_game_image_label.pack()
-        self._add_game_image_button = ttk.Button(
-            self._add_game_frame, text="Select Image", command=self._select_image_file
-        )
-        self._add_game_image_button.pack()
-
-        # Materials
-        ttk.Label(self._add_game_frame, text="Materials").pack()
-        self._add_game_materials = {}
-        for material in Material:
-            var = tk.BooleanVar()
-            chk = ttk.Checkbutton(
-                self._add_game_frame, text=material.name, variable=var
+        description = self.add_game_frame.description_entry.get()
+        image = self.add_game_frame.image_path.get()
+        materials = [
+            material
+            for material, var in self.add_game_frame.materials.items()
+            if var.get()
+        ]
+        categories = [
+            (
+                self.db.get_cognitive_category_by_id(category_id),
+                int(weight_slider.get()) if weight_slider.get() else None,
             )
-            chk.pack(anchor=tk.W)
-            self._add_game_materials[material] = var
-
-        # Categories
-        ttk.Label(self._add_game_frame, text="Categories").pack()
-        self._add_game_categories = {}
-        for category in self.db.get_all_cognitive_categories():
-            frame = ttk.Frame(self._add_game_frame)
-            frame.pack(anchor=tk.W)
-            var = tk.BooleanVar()
-            chk = ttk.Checkbutton(frame, text=category.name, variable=var)
-            chk.pack(side=tk.LEFT)
-            weight_slider = ttk.Scale(
-                frame,
-                from_=0,
-                to=10,
-                orient="horizontal",
+            for category_id, (var, weight_slider) in self.add_game_frame.categories.items()
+            if var.get()
+        ]
+        functions = [
+            (
+                self.db.get_cognitive_function_by_id(function_id),
+                int(weight_slider.get()) if weight_slider.get() else None,
             )
-            weight_slider.pack(side=tk.LEFT, padx=5)
-            self._add_game_categories[category.id] = (var, weight_slider)
+            for function_id, (var, weight_slider) in self.add_game_frame.functions.items()
+            if var.get()
+        ]
 
-        # Functions
-        ttk.Label(self._add_game_frame, text="Functions").pack()
-        self._add_game_functions = {}
-        for function in self.db.get_all_cognitive_functions():
-            frame = ttk.Frame(self._add_game_frame)
-            frame.pack(anchor=tk.W)
-            var = tk.BooleanVar()
-            chk = ttk.Checkbutton(frame, text=function.name, variable=var)
-            chk.pack(side=tk.LEFT)
-            int_var = tk.IntVar()
-            weight_slider = ttk.Scale(
-                frame,
-                from_=0,
-                to=10,
-                orient="horizontal",
-                variable=int_var,
-                command=lambda value: int_var.set(int(float(value))),
-            )
-            weight_slider.pack(side=tk.LEFT, padx=5)
-            ttk.Label(frame, textvariable=int_var).pack(side=tk.LEFT, padx=5)
-            self._add_game_functions[function.id] = (var, weight_slider)
+        for item in categories + functions:
+            if item[1] and (item[1] < 0 or item[1] > 10):
+                ttk.Label(self, text="Weight must be between 0 and 10!").pack()
+                return
 
-        # Add Game Button
-        self._add_game_button = ttk.Button(
-            self._add_game_frame, text="Add Game", command=self._add_game_to_db
+        game = Game(
+            title=title,
+            description=description,
+            image=image,
+            materials=materials,
+            categories=categories,
+            functions=functions,
         )
-        self._add_game_button.pack()
-
-    def _select_image_file(self):
-        file_path = filedialog.askopenfilename(
-            title="Select Image File",
-            filetypes=[
-                ("Image Files", "*.png *.jpg *.jpeg *.bmp *.gif"),
-                ("All Files", "*.*"),
-            ],
-        )
-        if file_path:
-            self._add_game_image_path.set(file_path)
+        try:
+            self.db.add_game(game)
+            ttk.Label(self, text="Game added!").pack()
+            logger.info(f"Game added: {game.title}")
+        except DuplicateError as e:
+            ttk.Label(self, text="This game already exist!").pack()
+            logger.error(f"Duplicate game error: {e}")
 
     def _setup_add_cognitive_category(self):
         self._add_cognitive_category_frame = ttk.Frame(self)
@@ -155,56 +114,6 @@ class Window(tk.Tk):
             command=self._add_cognitive_function_to_db,
         )
         self._add_cognitive_function_button.pack()
-
-    def _add_game_to_db(self):
-        title = self._add_game_title.get()
-        if title == "":
-            ttk.Label(self, text="Title cannot be empty!").pack()
-            return
-
-        description = self._add_game_description.get()
-        image = self._add_game_image_path.get()
-        materials = [
-            material for material, var in self._add_game_materials.items() if var.get()
-        ]
-        categories = [
-            (
-                self.db.get_cognitive_category_by_id(category_id),
-                int(weight_entry.get()) if weight_entry.get() else None,
-            )
-            for category_id, (var, weight_entry) in self._add_game_categories.items()
-            if var.get()
-        ]
-        functions = [
-            (
-                self.db.get_cognitive_function_by_id(function_id),
-                int(weight_entry.get()) if weight_entry.get() else None,
-            )
-            for function_id, (var, weight_entry) in self._add_game_functions.items()
-            if var.get()
-        ]
-
-        for item in categories + functions:
-            print(item)
-            if item[1] and (item[1] < 0 or item[1] > 10):
-                ttk.Label(self, text="Weight must be between 0 and 10!").pack()
-                return
-
-        game = Game(
-            title=title,
-            description=description,
-            image=image,
-            materials=materials,
-            categories=categories,
-            functions=functions,
-        )
-        try:
-            self.db.add_game(game)
-            ttk.Label(self, text="Game added!").pack()
-            logger.info(f"Game added: {game.title}")
-        except DuplicateError as e:
-            ttk.Label(self, text="This game already exist!").pack()
-            logger.error(f"Duplicate game error: {e}")
 
     def _add_cognitive_category_to_db(self):
         title = self._add_cognitive_category_title.get()
