@@ -29,7 +29,6 @@ class SearchBarWithAutocomplete(ttk.Frame):
 
         # Listbox for autocompletion
         self.result_listbox = tk.Listbox(self)
-        self.result_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.result_listbox.bind("<<ListboxSelect>>", self._on_select)
 
     def _on_key_release(self, event):
