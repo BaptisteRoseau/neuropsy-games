@@ -1,17 +1,18 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import logging
-import tkinter.filedialog as filedialog
 
-from models import Game, CognitiveCategory, CognitiveFunction, Material
+from models import Game, CognitiveCategory, CognitiveFunction
 from database import Database, DuplicateError
 from ui.search_bar import SearchBarWithAutocompleteFrame
 from ui.add_game import AddGameFrame
+from ui.confirm_window import ConfirmWindow
 
 logger = logging.getLogger(__name__)
 
-#FIXME: Saved cognitive functions and categories are saved under "Function Name" 
+# FIXME: Saved cognitive functions and categories are saved under "Function Name"
 # and "Category Name" instead of their IDs.
+
 
 class Window(tk.Tk):
     def __init__(self, db: Database):
@@ -20,11 +21,12 @@ class Window(tk.Tk):
 
         self.db = db
 
-        self.add_game_frame = AddGameFrame(self, self.db, self._add_game_to_db)
+        self.add_game_frame = AddGameFrame(self, self.db, self._ask_then_add_game)
         self.add_game_frame.pack(fill=tk.X, padx=10, pady=10)
 
         self._setup_add_cognitive_category()
         self._setup_add_cognitive_function()
+
         self.search_bar = SearchBarWithAutocompleteFrame(self, self.db)
         self.search_bar.pack(fill=tk.X, padx=10, pady=10)
 
@@ -46,7 +48,10 @@ class Window(tk.Tk):
                 self.db.get_cognitive_category_by_id(category_id),
                 int(weight_slider.get()) if weight_slider.get() else None,
             )
-            for category_id, (var, weight_slider) in self.add_game_frame.categories.items()
+            for category_id, (
+                var,
+                weight_slider,
+            ) in self.add_game_frame.categories.items()
             if var.get()
         ]
         functions = [
@@ -54,7 +59,10 @@ class Window(tk.Tk):
                 self.db.get_cognitive_function_by_id(function_id),
                 int(weight_slider.get()) if weight_slider.get() else None,
             )
-            for function_id, (var, weight_slider) in self.add_game_frame.functions.items()
+            for function_id, (
+                var,
+                weight_slider,
+            ) in self.add_game_frame.functions.items()
             if var.get()
         ]
 
@@ -151,13 +159,19 @@ class Window(tk.Tk):
 
     def _refresh_cognitive_categories(self):
         # Clear existing categories
-        # TODO
+        # TODO: Add a method to clear existing categories in AddGameFrame
         pass
 
     def _refresh_cognitive_functions(self):
         # Clear existing functions
-        # TODO
+        # TODO: Add a method to clear existing functions in AddGameFrame
         pass
+
+    def _ask_then_add_game(self):
+        confirm_window = ConfirmWindow(self, "Are you sure you want to add this game?")
+        result = confirm_window.show()
+        if result:
+            self._add_game_to_db()
 
 
 if __name__ == "__main__":
