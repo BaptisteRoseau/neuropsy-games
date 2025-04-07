@@ -201,7 +201,7 @@ class TestDatabase(unittest.TestCase):
         category = CognitiveCategory(name="Memory")
         function = CognitiveFunction(name="Attention")
         game = Game(
-            id=None,  # Invalid ID
+            id=None,
             title="Invalid Game",
             description="Invalid game description",
             image="image_path.png",
@@ -215,11 +215,11 @@ class TestDatabase(unittest.TestCase):
 
     def test_delete_game_invalid_id(self):
         with self.assertRaises(ValueError) as context:
-            self.db.delete_game(-1)  # Invalid ID
+            self.db.delete_game(-1)
         self.assertEqual(str(context.exception), "Game ID must be a positive number")
 
     def test_update_cognitive_category_invalid_id(self):
-        category = CognitiveCategory(id=None, name="Invalid Category")  # Invalid ID
+        category = CognitiveCategory(id=None, name="Invalid Category")
         with self.assertRaises(ValueError) as context:
             self.db.update_cognitive_category(category)
         self.assertEqual(
@@ -228,13 +228,13 @@ class TestDatabase(unittest.TestCase):
 
     def test_delete_cognitive_category_invalid_id(self):
         with self.assertRaises(ValueError) as context:
-            self.db.delete_cognitive_category(-1)  # Invalid ID
+            self.db.delete_cognitive_category(-1)
         self.assertEqual(
             str(context.exception), "Cognitive Category ID must be a positive number"
         )
 
     def test_update_cognitive_function_invalid_id(self):
-        function = CognitiveFunction(id=None, name="Invalid Function")  # Invalid ID
+        function = CognitiveFunction(id=None, name="Invalid Function")
         with self.assertRaises(ValueError) as context:
             self.db.update_cognitive_function(function)
         self.assertEqual(
@@ -243,7 +243,7 @@ class TestDatabase(unittest.TestCase):
 
     def test_delete_cognitive_function_invalid_id(self):
         with self.assertRaises(ValueError) as context:
-            self.db.delete_cognitive_function(-1)  # Invalid ID
+            self.db.delete_cognitive_function(-1)
         self.assertEqual(
             str(context.exception), "Cognitive Function ID must be a positive number"
         )
@@ -253,9 +253,9 @@ class TestDatabase(unittest.TestCase):
             title="Game with Empty Fields",
             description="A game with empty fields",
             image=None,
-            materials=[],  # Empty materials
-            categories=[],  # Empty categories
-            functions=[],  # Empty functions
+            materials=[],
+            categories=[],
+            functions=[],
         )
         self.db.add_game(game)
 
@@ -268,7 +268,7 @@ class TestDatabase(unittest.TestCase):
 
     def test_get_game_no_matches(self):
         games = self.db.get_game(game_title="Nonexistent Game")
-        self.assertEqual(len(games), 0)  # Ensure no games are returned
+        self.assertEqual(len(games), 0)
 
 
 if __name__ == "__main__":
