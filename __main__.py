@@ -14,30 +14,28 @@ class MainApp(tk.Tk):
         self.title("Neuropsy Games")
         self.geometry("800x600")
         self.db = db
-
-        # Tabbed interface
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=tk.BOTH, expand=True)
-
-        # Add tabs
         self._add_tabs()
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
     def _add_tabs(self):
-        # Game CRUD tab
         game_crud_frame = GameCRUDFrame(self, self.db)
         self.notebook.add(game_crud_frame, text="Games")
 
-        # Category CRUD tab
         category_crud_frame = CategoryCRUDFrame(self, self.db)
         self.notebook.add(category_crud_frame, text="Categories")
 
-        # Function CRUD tab
         function_crud_frame = FunctionCRUDFrame(self, self.db)
         self.notebook.add(function_crud_frame, text="Functions")
 
-        # Search and List tab
-        search_frame = SearchBarFrame(self, self.db)
-        self.notebook.add(search_frame, text="Search & List")
+        self.search_frame = SearchBarFrame(self, self.db)
+        self.notebook.add(self.search_frame, text="Search & List")
+
+    def _on_tab_changed(self, event):
+        selected_tab = self.notebook.tab(self.notebook.select(), "text")
+        if selected_tab == "Search & List" and self.search_frame:
+            self.search_frame.refresh()
 
 
 if __name__ == "__main__":

@@ -8,8 +8,8 @@ from models import Material
 
 logger = logging.getLogger(__name__)
 
-# TODO: Refresh the cognitive functions and categories dynamically
 # TODO: Fix database searching for filters
+
 
 class SearchBarFrame(ttk.Frame):
     db: Database
@@ -20,6 +20,11 @@ class SearchBarFrame(ttk.Frame):
     def __init__(self, parent, db: Database):
         super().__init__(parent)
         self.db = db
+        self.refresh()
+
+    def refresh(self):
+        for child in self.winfo_children():
+            child.destroy()
 
         # Title
         ttk.Label(self, text="Search Games", font=("Arial", 16)).pack(pady=10)
@@ -37,10 +42,7 @@ class SearchBarFrame(ttk.Frame):
 
         # Material filter
         ttk.Label(filter_frame, text="Material:").grid(row=0, column=0, padx=5)
-        self.material_vars = {
-            material: tk.BooleanVar()
-            for material in Material
-        }
+        self.material_vars = {material: tk.BooleanVar() for material in Material}
         for i, (material, var) in enumerate(self.material_vars.items()):
             ttk.Checkbutton(filter_frame, text=material.name, variable=var).grid(
                 row=0, column=i + 1, padx=5
@@ -51,9 +53,7 @@ class SearchBarFrame(ttk.Frame):
         self.category_vars = {}
         self.category_frame = ttk.Frame(filter_frame)
         self.category_frame.grid(row=1, column=1, columnspan=4, sticky="w")
-        categories = (
-            self.db.get_all_cognitive_categories()
-        )
+        categories = self.db.get_all_cognitive_categories()
         for i, category in enumerate(categories):
             var = tk.BooleanVar()
             self.category_vars[category.name] = (var, category.id)

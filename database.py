@@ -396,7 +396,7 @@ class Database:
         if cognitive_categories_ids:
             query += (
                 " AND ("
-                + " OR ".join(["json_each.value = ?"] * len(cognitive_categories_ids))
+                + " OR ".join(["json_extract(json, path) = ?"] * len(cognitive_categories_ids))
                 + ")"
             )
             params.extend(cognitive_categories_ids)
