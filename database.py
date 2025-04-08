@@ -144,20 +144,22 @@ class Database:
         if category_id is None or category_id < 0:
             raise ValueError("Cognitive Category ID must be a positive number")
         logger.info("Deleting cognitive category with id " + str(category_id))
-        
+
         # Update games to remove references to the deleted category
         cursor = self.con.execute("SELECT id, cognitive_categories FROM games")
         for game_id, categories_json in cursor.fetchall():
             if categories_json:
                 categories = json.loads(categories_json)
                 updated_categories = [
-                    (cat_id, weight) for cat_id, weight in categories if cat_id != category_id
+                    (cat_id, weight)
+                    for cat_id, weight in categories
+                    if cat_id != category_id
                 ]
                 self.con.execute(
                     "UPDATE games SET cognitive_categories = ? WHERE id = ?",
                     (json.dumps(updated_categories), game_id),
                 )
-        
+
         # Delete the cognitive category
         self.con.execute(
             "DELETE FROM cognitive_categories WHERE id = ?", (category_id,)
@@ -196,20 +198,22 @@ class Database:
         if function_id is None or function_id < 0:
             raise ValueError("Cognitive Function ID must be a positive number")
         logger.info("Deleting cognitive function with id " + str(function_id))
-        
+
         # Update games to remove references to the deleted function
         cursor = self.con.execute("SELECT id, cognitive_functions FROM games")
         for game_id, functions_json in cursor.fetchall():
             if functions_json:
                 functions = json.loads(functions_json)
                 updated_functions = [
-                    (func_id, weight) for func_id, weight in functions if func_id != function_id
+                    (func_id, weight)
+                    for func_id, weight in functions
+                    if func_id != function_id
                 ]
                 self.con.execute(
                     "UPDATE games SET cognitive_functions = ? WHERE id = ?",
                     (json.dumps(updated_functions), game_id),
                 )
-        
+
         # Delete the cognitive function
         self.con.execute("DELETE FROM cognitive_functions WHERE id = ?", (function_id,))
         self.con.commit()
@@ -356,3 +360,94 @@ class Database:
         if result is None:
             raise NotFoundError(f"Cognitive function with ID {function_id} not found.")
         return CognitiveFunction(id=result[0], name=result[1])
+
+    @handle_sqlite_exceptions
+    def get_games_with_filters(
+        self,
+        game_title: str = None,
+        cognitive_categories_ids: list[int] = None,
+        cognitive_functions_ids: list[int] = None,
+        materials: list[Material] = None,
+    ) -> list[Game]:
+        if cognitive_categories_ids is None:
+            cognitive_categories_ids = []
+        if cognitive_functions_ids is None:
+            cognitive_functions_ids = []
+        if materials is None:
+            materials = []
+
+        logger.info("Fetching games with filters")
+        query = "SELECT * FROM games WHERE 1=1"
+        params = []
+
+        # Filter by game title
+        if game_title:
+            query += " AND title LIKE ?"
+            params.append(f"%{game_title}%")
+
+        # Filter by cognitive categories
+        if cognitive_categories_ids:
+            query += " AND (" + " OR ".join(
+                ["json_each.value = ?"] * len(cognitive_categories_ids)
+            ) + ")"
+            params.extend(cognitive_categories_ids)
+            query = f"""
+                {query}
+                AND EXISTS (
+                    SELECT 1 FROM json_each(games.cognitive_categories)
+                    WHERE json_each.value IN ({','.join(['?'] * len(cognitive_categories_ids))})
+                )
+            """
+
+        # Filter by cognitive functions
+        if cognitive_functions_ids:
+            query += " AND (" + " OR ".join(
+                ["json_each.value = ?"] * len(cognitive_functions_ids)
+            ) + ")"
+            params.extend(cognitive_functions_ids)
+            query = f"""
+                {query}
+                AND EXISTS (
+                    SELECT 1 FROM json_each(games.cognitive_functions)
+                    WHERE json_each.value IN ({','.join(['?'] * len(cognitive_functions_ids))})
+                )
+            """
+
+        # Filter by materials
+        if materials:
+            material_names = [material.name for material in materials]
+            query += " AND (" + " OR ".join(
+                ["json_each.value = ?"] * len(material_names)
+            ) + ")"
+            params.extend(material_names)
+            query = f"""
+                {query}
+                AND EXISTS (
+                    SELECT 1 FROM json_each(games.materials)
+                    WHERE json_each.value IN ({','.join(['?'] * len(material_names))})
+                )
+            """
+
+        cursor = self.con.execute(query, params)
+        rows = cursor.fetchall()
+        games = []
+        for row in rows:
+            game = Game(
+                id=row[0],
+                title=row[1],
+                description=row[2],
+                materials=[
+                    Material[material] for material in json.loads(row[5] or "[]")
+                ],
+                categories=[
+                    (self.get_cognitive_category_by_id(cat[0]), cat[1])
+                    for cat in json.loads(row[4] or "[]")
+                ],
+                functions=[
+                    (self.get_cognitive_function_by_id(func[0]), func[1])
+                    for func in json.loads(row[3] or "[]")
+                ],
+                image=row[6],
+            )
+            games.append(game)
+        return games

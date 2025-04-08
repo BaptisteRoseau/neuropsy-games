@@ -372,6 +372,142 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(games[0].functions), 1)
         self.assertEqual(games[0].functions[0][0].id, function2_id)
 
+    def test_get_games_with_filters_by_title(self):
+        game1 = Game(
+            title="Memory Game",
+            description="A game about memory",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[],
+        )
+        game2 = Game(
+            title="Attention Game",
+            description="A game about attention",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[],
+        )
+        self.db.add_game(game1)
+        self.db.add_game(game2)
+
+        games = self.db.get_games_with_filters(game_title="Memory")
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Memory Game")
+
+    def test_get_games_with_filters_by_cognitive_category(self):
+        category = CognitiveCategory(name="Memory")
+        self.db.add_cognitive_category(category)
+        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+
+        game1 = Game(
+            title="Game with Memory",
+            description="A game with memory category",
+            image=None,
+            materials=[],
+            categories=[(CognitiveCategory(id=category_id, name="Memory"), 5)],
+            functions=[],
+        )
+        game2 = Game(
+            title="Attention Game",
+            description="A game about attention",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[],
+        )
+        self.db.add_game(game1)
+        self.db.add_game(game2)
+
+        games = self.db.get_games_with_filters(cognitive_categories_ids=[category_id])
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Game with Memory")
+
+    def test_get_games_with_filters_by_cognitive_function(self):
+        function = CognitiveFunction(name="Attention")
+        self.db.add_cognitive_function(function)
+        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+
+        game1 = Game(
+            title="Game with Memory",
+            description="A game with memory category",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[],
+        )
+        game2 = Game(
+            title="Game with Attention",
+            description="A game with attention function",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[(CognitiveFunction(id=function_id, name="Attention"), 3)],
+        )
+        self.db.add_game(game1)
+        self.db.add_game(game2)
+
+        games = self.db.get_games_with_filters(cognitive_functions_ids=[function_id])
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Game with Attention")
+
+    def test_get_games_with_filters_by_materials(self):
+        game1 = Game(
+            title="Game with Visual Material",
+            description="A game with visual material",
+            image=None,
+            materials=[Material.VISUAL],
+            categories=[],
+            functions=[],
+        )
+        game2 = Game(
+            title="Game with Tactile Material",
+            description="A game with Tactile material",
+            image=None,
+            materials=[Material.TACTILE],
+            categories=[],
+            functions=[],
+        )
+        self.db.add_game(game1)
+        self.db.add_game(game2)
+
+        games = self.db.get_games_with_filters(materials=[Material.VISUAL])
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Game with Visual Material")
+
+    def test_get_games_with_filters_combined(self):
+        category = CognitiveCategory(name="Memory")
+        function = CognitiveFunction(name="Attention")
+        self.db.add_cognitive_category(category)
+        self.db.add_cognitive_function(function)
+
+        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+
+        game = Game(
+            title="Complex Game",
+            description="A game with multiple filters",
+            image=None,
+            materials=[Material.VISUAL],
+            categories=[(CognitiveCategory(id=category_id, name="Memory"), 5)],
+            functions=[(CognitiveFunction(id=function_id, name="Attention"), 3)],
+        )
+        self.db.add_game(game)
+
+        games = self.db.get_games_with_filters(
+            game_title="Complex",
+            cognitive_categories_ids=[category_id],
+            cognitive_functions_ids=[function_id],
+            materials=[Material.VISUAL],
+        )
+        self.assertEqual(len(games), 1)
+        self.assertEqual(games[0].title, "Complex Game")
+
+    def test_get_games_with_filters_no_matches(self):
+        games = self.db.get_games_with_filters(game_title="Nonexistent Game")
+        self.assertEqual(len(games), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
