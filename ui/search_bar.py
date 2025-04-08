@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import logging
 
+from ui.game_detail import GameDetailFrame
 from database import Database
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,9 @@ logger = logging.getLogger(__name__)
 class SearchBarWithAutocompleteFrame(ttk.Frame):
     def __init__(self, parent, db: Database):
         super().__init__(parent)
-        self.db = db
+        self.db: Database = db
+        self.parent = parent
+        self.selected_game: GameDetailFrame|None = None
 
         # Search bar (Entry widget)
         self.search_var = tk.StringVar()
@@ -54,5 +57,10 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
         # Handle selection from the Listbox
         selected_index = self.result_listbox.curselection()
         if selected_index:
+            if self.selected_game:
+                self.selected_game.destroy()
             selected_game = self.result_listbox.get(selected_index)
-            print(f"Selected game: {selected_game}")  # Replace with desired action
+            self.selected_game = GameDetailFrame(
+                self.parent,
+                self.db.get_game(game_title=selected_game)[0],
+            ).pack(fill=tk.BOTH, expand=True)

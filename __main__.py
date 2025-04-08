@@ -12,8 +12,11 @@ logger = logging.getLogger(__name__)
 
 #TODO:
 # - Copy images to an asset folder, save the relative path
-# - Save cognitive categories and functions ID instead of name in the DB
-# 
+# - Improve UI appearance
+# - Add CC and CF filtering to the search bar
+# - Add a game list view
+# - Add a game detail view
+# - Add a game edit view
 
 class Window(tk.Tk):
     def __init__(self, db: Database):
