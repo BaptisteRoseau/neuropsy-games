@@ -16,18 +16,23 @@ class UpdateGameWindow(CreateGameWindow):
         self.game_var = tk.StringVar()
         self.game_combobox = ttk.Combobox(self, textvariable=self.game_var)
         self.game_combobox.pack()
+        self.game_combobox.bind("<<ComboboxSelected>>", lambda _: self._populate_form())
         self._populate_games()
 
         # Update Button
         self.action_button.destroy()
-        self.action_button = ttk.Button(
-            self, text="Update", command=self._update_in_db
-        )
+        self.action_button = ttk.Button(self, text="Update", command=self._update_in_db)
         self.action_button.pack(pady=10)
 
     def _populate_games(self):
         games = self.db.get_all_games()
         self.game_combobox["values"] = [game.title for game in games]
+
+    def _populate_form(self):
+        selected_game_title = self.game_var.get()
+        if selected_game_title:
+            game = self.db.get_game(game_title=selected_game_title)[0]
+            super()._populate_form(game)
 
     def _update_in_db(self):
         selected_game_title = self.game_var.get()

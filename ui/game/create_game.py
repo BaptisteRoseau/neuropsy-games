@@ -144,3 +144,31 @@ class CreateGameWindow(tk.Toplevel):
             self.destroy()
         except Exception as e:
             messagebox.showerror("Error", str(e))
+
+    def _populate_form(self, game: Game):
+        # Populate title and description
+        self.title_entry.delete(0, tk.END)
+        self.title_entry.insert(0, game.title)
+        self.description_entry.delete(0, tk.END)
+        self.description_entry.insert(0, game.description)
+
+        # Populate image path
+        self.image_path.set(game.image)
+
+        # Populate materials
+        for material, var in self.materials.items():
+            var.set(material in game.materials)
+
+        # Populate categories
+        for category_id, (var, weight_slider) in self.categories.items():
+            category = next((cat for cat, weight in game.categories if cat.id == category_id), None)
+            if category:
+                var.set(True)
+                weight_slider.set(next(weight for cat, weight in game.categories if cat.id == category_id))
+
+        # Populate functions
+        for function_id, (var, weight_slider) in self.functions.items():
+            function = next((func for func, weight in game.functions if func.id == function_id), None)
+            if function:
+                var.set(True)
+                weight_slider.set(next(weight for func, weight in game.functions if func.id == function_id))
