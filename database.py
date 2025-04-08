@@ -219,44 +219,47 @@ class Database:
         self.con.commit()
 
     @handle_sqlite_exceptions
-    def get_game(self, game_id: int = None, game_title: str = None) -> list[Game]:
+    def get_game(self, game_id: int = None, game_title: str = None) -> Game:
         logger.info("Getting game")
         if game_id:
             cursor = self.con.execute("SELECT * FROM games WHERE id = ?", (game_id,))
         elif game_title:
             cursor = self.con.execute(
-                "SELECT * FROM games WHERE title LIKE ?", (f"%{game_title}%",)
+                "SELECT * FROM games WHERE title = ?", (game_title,)
             )
         else:
             raise ValueError("Either game_id or game_title must be provided")
 
-        rows = cursor.fetchall()
-        games = []
-        for row in rows:
-            game = Game(
-                id=row[0],
-                title=row[1],
-                description=row[2],
-                materials=[
-                    Material[material] for material in json.loads(row[5] or "[]")
-                ],  # Handle None or empty string for materials
-                categories=[
-                    (self.get_cognitive_category_by_id(cat[0]), cat[1])
-                    for cat in json.loads(row[4] or "[]")
-                ],  # Deserialize category IDs
-                functions=[
-                    (self.get_cognitive_function_by_id(func[0]), func[1])
-                    for func in json.loads(row[3] or "[]")
-                ],  # Deserialize function IDs
-                image=row[6],
+        row = cursor.fetchone()
+        if not row:
+            raise NotFoundError(
+                f"Game with ID {game_id} or title {game_title} not found."
             )
-            games.append(game)
-        return games
+
+        game = Game(
+            id=row[0],
+            title=row[1],
+            description=row[2],
+            materials=[
+                Material[material] for material in json.loads(row[5] or "[]")
+            ],  # Handle None or empty string for materials
+            categories=[
+                (self.get_cognitive_category_by_id(cat[0]), cat[1])
+                for cat in json.loads(row[4] or "[]")
+            ],  # Deserialize category IDs
+            functions=[
+                (self.get_cognitive_function_by_id(func[0]), func[1])
+                for func in json.loads(row[3] or "[]")
+            ],  # Deserialize function IDs
+            image=row[6],
+        )
+
+        return game
 
     @handle_sqlite_exceptions
     def get_cognitive_category(
         self, category_id: int = None, category_name: str = None
-    ) -> list[CognitiveCategory]:
+    ) -> CognitiveCategory:
         logger.info("Getting cognitive category")
         if category_id:
             cursor = self.con.execute(
@@ -264,23 +267,25 @@ class Database:
             )
         elif category_name:
             cursor = self.con.execute(
-                "SELECT * FROM cognitive_categories WHERE name LIKE ?",
-                (f"%{category_name}%",),
+                "SELECT * FROM cognitive_categories WHERE name = ?",
+                (category_name,),
             )
         else:
             raise ValueError("Either category_id or category_name must be provided")
 
-        rows = cursor.fetchall()
-        categories = []
-        for row in rows:
-            category = CognitiveCategory(id=row[0], name=row[1])
-            categories.append(category)
-        return categories
+        row = cursor.fetchone()
+        if not row:
+            raise NotFoundError(
+                f"Cognitive category with ID {category_id} or name {category_name} not found."
+            )
+
+        category = CognitiveCategory(id=row[0], name=row[1])
+        return category
 
     @handle_sqlite_exceptions
     def get_cognitive_function(
         self, function_id: int = None, function_name: str = None
-    ) -> list[CognitiveFunction]:
+    ) -> CognitiveFunction:
         logger.info("Getting cognitive function")
         if function_id:
             cursor = self.con.execute(
@@ -288,18 +293,20 @@ class Database:
             )
         elif function_name:
             cursor = self.con.execute(
-                "SELECT * FROM cognitive_functions WHERE name LIKE ?",
-                (f"%{function_name}%",),
+                "SELECT * FROM cognitive_functions WHERE name = ?",
+                (function_name,),
             )
         else:
             raise ValueError("Either function_id or function_name must be provided")
 
-        rows = cursor.fetchall()
-        functions = []
-        for row in rows:
-            function = CognitiveFunction(id=row[0], name=row[1])
-            functions.append(function)
-        return functions
+        row = cursor.fetchone()
+        if not row:
+            raise NotFoundError(
+                f"Cognitive function with ID {function_id} or name {function_name} not found."
+            )
+
+        function = CognitiveFunction(id=row[0], name=row[1])
+        return function
 
     @handle_sqlite_exceptions
     def get_all_games(self) -> list[Game]:

@@ -31,7 +31,7 @@ class UpdateGameWindow(CreateGameWindow):
     def _populate_form(self):
         selected_game_title = self.game_var.get()
         if selected_game_title:
-            game = self.db.get_game(game_title=selected_game_title)[0]
+            game = self.db.get_game(game_title=selected_game_title)
             super()._populate_form(game)
 
     def _update_in_db(self):
@@ -41,7 +41,7 @@ class UpdateGameWindow(CreateGameWindow):
             return
 
         game = self._game_from_form()
-        game.id = self.db.get_game(game_title=selected_game_title)[0].id
+        game.id = self.db.get_game(game_title=selected_game_title).id
 
         try:
             self.db.update_game(game)

@@ -37,7 +37,7 @@ class UpdateCategoryWindow(tk.Toplevel):
             messagebox.showerror("Error", "Both fields must be filled!")
             return
 
-        category = self.db.get_cognitive_category(category_name=selected_name)[0]
+        category = self.db.get_cognitive_category(category_name=selected_name)
         category.name = new_name
 
         try:

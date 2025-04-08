@@ -29,7 +29,7 @@ class DeleteFunctionWindow(tk.Toplevel):
             messagebox.showerror("Error", "No function selected!")
             return
 
-        function = self.db.get_cognitive_function(function_name=selected_name)[0]
+        function = self.db.get_cognitive_function(function_name=selected_name)
 
         try:
             self.db.delete_cognitive_function(function.id)

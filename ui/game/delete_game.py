@@ -34,7 +34,7 @@ class DeleteGameWindow(tk.Toplevel):
             messagebox.showerror("Error", "No game selected!")
             return
 
-        game = self.db.get_game(game_title=selected_game_title)[0]
+        game = self.db.get_game(game_title=selected_game_title)
 
         try:
             self.db.delete_game(game.id)

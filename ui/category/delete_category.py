@@ -29,7 +29,7 @@ class DeleteCategoryWindow(tk.Toplevel):
             messagebox.showerror("Error", "No category selected!")
             return
 
-        category = self.db.get_cognitive_category(category_name=selected_name)[0]
+        category = self.db.get_cognitive_category(category_name=selected_name)
 
         try:
             self.db.delete_cognitive_category(category.id)

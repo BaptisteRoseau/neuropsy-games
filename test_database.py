@@ -18,17 +18,15 @@ class TestDatabase(unittest.TestCase):
         category = CognitiveCategory(name="Memory")
         self.db.add_cognitive_category(category)
 
-        categories = self.db.get_cognitive_category(category_name="Memory")
-        self.assertEqual(len(categories), 1)
-        self.assertEqual(categories[0].name, "Memory")
+        fetched_category = self.db.get_cognitive_category(category_name="Memory")
+        self.assertEqual(fetched_category.name, "Memory")
 
     def test_add_and_get_cognitive_function(self):
         function = CognitiveFunction(name="Attention")
         self.db.add_cognitive_function(function)
 
-        functions = self.db.get_cognitive_function(function_name="Attention")
-        self.assertEqual(len(functions), 1)
-        self.assertEqual(functions[0].name, "Attention")
+        fetched_function = self.db.get_cognitive_function(function_name="Attention")
+        self.assertEqual(fetched_function.name, "Attention")
 
     def test_add_and_get_game_with_image(self):
         category = CognitiveCategory(name="Memory")
@@ -36,8 +34,8 @@ class TestDatabase(unittest.TestCase):
         self.db.add_cognitive_category(category)
         self.db.add_cognitive_function(function)
 
-        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
-        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+        category_id = self.db.get_cognitive_category(category_name="Memory").id
+        function_id = self.db.get_cognitive_function(function_name="Attention").id
 
         game = Game(
             title="Game with Image",
@@ -49,10 +47,9 @@ class TestDatabase(unittest.TestCase):
         )
         self.db.add_game(game)
 
-        games = self.db.get_game(game_title="Game with Image")
-        self.assertEqual(len(games), 1)
-        self.assertEqual(games[0].title, "Game with Image")
-        self.assertEqual(games[0].image, "image_path.png")
+        fetched_game = self.db.get_game(game_title="Game with Image")
+        self.assertEqual(fetched_game.title, "Game with Image")
+        self.assertEqual(fetched_game.image, "image_path.png")
 
     def test_add_and_get_game_without_image(self):
         category = CognitiveCategory(name="Memory")
@@ -60,8 +57,8 @@ class TestDatabase(unittest.TestCase):
         self.db.add_cognitive_category(category)
         self.db.add_cognitive_function(function)
 
-        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
-        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+        category_id = self.db.get_cognitive_category(category_name="Memory").id
+        function_id = self.db.get_cognitive_function(function_name="Attention").id
 
         game = Game(
             title="Game without Image",
@@ -73,10 +70,9 @@ class TestDatabase(unittest.TestCase):
         )
         self.db.add_game(game)
 
-        games = self.db.get_game(game_title="Game without Image")
-        self.assertEqual(len(games), 1)
-        self.assertEqual(games[0].title, "Game without Image")
-        self.assertIsNone(games[0].image)
+        fetched_game = self.db.get_game(game_title="Game without Image")
+        self.assertEqual(fetched_game.title, "Game without Image")
+        self.assertIsNone(fetched_game.image)
 
     def test_get_game_without_id_or_title(self):
         with self.assertRaises(ValueError):
@@ -143,43 +139,36 @@ class TestDatabase(unittest.TestCase):
         category = CognitiveCategory(name="Memory")
         self.db.add_cognitive_category(category)
 
-        categories = self.db.get_cognitive_category(category_name="Memory")
-        category = categories[0]
+        category = self.db.get_cognitive_category(category_name="Memory")
         category.name = "Updated Memory"
         self.db.update_cognitive_category(category)
 
-        updated_categories = self.db.get_cognitive_category(
+        updated_category = self.db.get_cognitive_category(
             category_name="Updated Memory"
         )
-        self.assertEqual(len(updated_categories), 1)
-        self.assertEqual(updated_categories[0].name, "Updated Memory")
+        self.assertEqual(updated_category.name, "Updated Memory")
 
         self.db.delete_cognitive_category(category.id)
-        deleted_categories = self.db.get_cognitive_category(
-            category_name="Updated Memory"
-        )
-        self.assertEqual(len(deleted_categories), 0)
+
+        with self.assertRaises(NotFoundError):
+            self.db.get_cognitive_category(category_name="Updated Memory")
 
     def test_update_and_delete_cognitive_function(self):
         function = CognitiveFunction(name="Attention")
         self.db.add_cognitive_function(function)
 
-        functions = self.db.get_cognitive_function(function_name="Attention")
-        function = functions[0]
+        function = self.db.get_cognitive_function(function_name="Attention")
         function.name = "Updated Attention"
         self.db.update_cognitive_function(function)
 
         updated_functions = self.db.get_cognitive_function(
             function_name="Updated Attention"
         )
-        self.assertEqual(len(updated_functions), 1)
-        self.assertEqual(updated_functions[0].name, "Updated Attention")
+        self.assertEqual(updated_functions.name, "Updated Attention")
 
         self.db.delete_cognitive_function(function.id)
-        deleted_functions = self.db.get_cognitive_function(
-            function_name="Updated Attention"
-        )
-        self.assertEqual(len(deleted_functions), 0)
+        with self.assertRaises(NotFoundError):
+            self.db.get_cognitive_function(function_name="Updated Attention")
 
     def test_update_and_delete_game(self):
         game = Game(
@@ -192,20 +181,18 @@ class TestDatabase(unittest.TestCase):
         )
         self.db.add_game(game)
 
-        games = self.db.get_game(game_title="Game to Update")
-        game = games[0]
+        game = self.db.get_game(game_title="Game to Update")
         game.title = "Updated Game"
         game.description = "Updated description"
         self.db.update_game(game)
 
-        updated_games = self.db.get_game(game_title="Updated Game")
-        self.assertEqual(len(updated_games), 1)
-        self.assertEqual(updated_games[0].title, "Updated Game")
-        self.assertEqual(updated_games[0].description, "Updated description")
+        updated_game = self.db.get_game(game_title="Updated Game")
+        self.assertEqual(updated_game.title, "Updated Game")
+        self.assertEqual(updated_game.description, "Updated description")
 
         self.db.delete_game(game.id)
-        deleted_games = self.db.get_game(game_title="Updated Game")
-        self.assertEqual(len(deleted_games), 0)
+        with self.assertRaises(NotFoundError):
+            self.db.get_game(game_title="Updated Game")
 
     def test_update_game_invalid_id(self):
         category = CognitiveCategory(name="Memory")
@@ -269,24 +256,22 @@ class TestDatabase(unittest.TestCase):
         )
         self.db.add_game(game)
 
-        games = self.db.get_game(game_title="Game with Empty Fields")
-        self.assertEqual(len(games), 1)
-        self.assertEqual(games[0].title, "Game with Empty Fields")
-        self.assertEqual(games[0].materials, [])
-        self.assertEqual(games[0].categories, [])
-        self.assertEqual(games[0].functions, [])
+        game = self.db.get_game(game_title="Game with Empty Fields")
+        self.assertEqual(game.title, "Game with Empty Fields")
+        self.assertEqual(game.materials, [])
+        self.assertEqual(game.categories, [])
+        self.assertEqual(game.functions, [])
 
     def test_get_game_no_matches(self):
-        games = self.db.get_game(game_title="Nonexistent Game")
-        self.assertEqual(len(games), 0)
+        with self.assertRaises(NotFoundError):
+            self.db.get_game(game_title="Nonexistent Game")
 
     def test_get_cognitive_category_by_id(self):
         # Case: Category exists
         category = CognitiveCategory(name="Memory")
         self.db.add_cognitive_category(category)
 
-        categories = self.db.get_cognitive_category(category_name="Memory")
-        category_id = categories[0].id
+        category_id = self.db.get_cognitive_category(category_name="Memory").id
 
         fetched_category = self.db.get_cognitive_category_by_id(category_id)
         self.assertEqual(fetched_category.id, category_id)
@@ -304,8 +289,7 @@ class TestDatabase(unittest.TestCase):
         function = CognitiveFunction(name="Attention")
         self.db.add_cognitive_function(function)
 
-        functions = self.db.get_cognitive_function(function_name="Attention")
-        function_id = functions[0].id
+        function_id = self.db.get_cognitive_function(function_name="Attention").id
 
         fetched_function = self.db.get_cognitive_function_by_id(function_id)
         self.assertEqual(fetched_function.id, function_id)
@@ -324,26 +308,27 @@ class TestDatabase(unittest.TestCase):
         self.db.add_cognitive_category(category1)
         self.db.add_cognitive_category(category2)
 
-        category1_id = self.db.get_cognitive_category(category_name="Memory")[0].id
-        category2_id = self.db.get_cognitive_category(category_name="Language")[0].id
+        category1_id = self.db.get_cognitive_category(category_name="Memory").id
+        category2_id = self.db.get_cognitive_category(category_name="Language").id
 
         game = Game(
             title="Game with Categories",
             description="A game with categories",
             image=None,
             materials=[],
-            categories=[(CognitiveCategory(id=category1_id, name="Memory"), 5), 
-                        (CognitiveCategory(id=category2_id, name="Language"), 3)],
+            categories=[
+                (CognitiveCategory(id=category1_id, name="Memory"), 5),
+                (CognitiveCategory(id=category2_id, name="Language"), 3),
+            ],
             functions=[],
         )
         self.db.add_game(game)
 
         self.db.delete_cognitive_category(category1_id)
 
-        games = self.db.get_game(game_title="Game with Categories")
-        self.assertEqual(len(games), 1)
-        self.assertEqual(len(games[0].categories), 1)
-        self.assertEqual(games[0].categories[0][0].id, category2_id)
+        game = self.db.get_game(game_title="Game with Categories")
+        self.assertEqual(len(game.categories), 1)
+        self.assertEqual(game.categories[0][0].id, category2_id)
 
     def test_delete_cognitive_function_updates_games(self):
         function1 = CognitiveFunction(name="Attention")
@@ -351,8 +336,8 @@ class TestDatabase(unittest.TestCase):
         self.db.add_cognitive_function(function1)
         self.db.add_cognitive_function(function2)
 
-        function1_id = self.db.get_cognitive_function(function_name="Attention")[0].id
-        function2_id = self.db.get_cognitive_function(function_name="Perception")[0].id
+        function1_id = self.db.get_cognitive_function(function_name="Attention").id
+        function2_id = self.db.get_cognitive_function(function_name="Perception").id
 
         game = Game(
             title="Game with Functions",
@@ -360,17 +345,18 @@ class TestDatabase(unittest.TestCase):
             image=None,
             materials=[],
             categories=[],
-            functions=[(CognitiveFunction(id=function1_id, name="Attention"), 4), 
-                       (CognitiveFunction(id=function2_id, name="Perception"), 2)],
+            functions=[
+                (CognitiveFunction(id=function1_id, name="Attention"), 4),
+                (CognitiveFunction(id=function2_id, name="Perception"), 2),
+            ],
         )
         self.db.add_game(game)
 
         self.db.delete_cognitive_function(function1_id)
 
-        games = self.db.get_game(game_title="Game with Functions")
-        self.assertEqual(len(games), 1)
-        self.assertEqual(len(games[0].functions), 1)
-        self.assertEqual(games[0].functions[0][0].id, function2_id)
+        game = self.db.get_game(game_title="Game with Functions")
+        self.assertEqual(len(game.functions), 1)
+        self.assertEqual(game.functions[0][0].id, function2_id)
 
     def test_get_games_with_filters_by_title(self):
         game1 = Game(
@@ -399,7 +385,7 @@ class TestDatabase(unittest.TestCase):
     def test_get_games_with_filters_by_cognitive_category(self):
         category = CognitiveCategory(name="Memory")
         self.db.add_cognitive_category(category)
-        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+        category_id = self.db.get_cognitive_category(category_name="Memory").id
 
         game1 = Game(
             title="Game with Memory",
@@ -427,7 +413,7 @@ class TestDatabase(unittest.TestCase):
     def test_get_games_with_filters_by_cognitive_function(self):
         function = CognitiveFunction(name="Attention")
         self.db.add_cognitive_function(function)
-        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+        function_id = self.db.get_cognitive_function(function_name="Attention").id
 
         game1 = Game(
             title="Game with Memory",
@@ -482,8 +468,8 @@ class TestDatabase(unittest.TestCase):
         self.db.add_cognitive_category(category)
         self.db.add_cognitive_function(function)
 
-        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
-        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+        category_id = self.db.get_cognitive_category(category_name="Memory").id
+        function_id = self.db.get_cognitive_function(function_name="Attention").id
 
         game = Game(
             title="Complex Game",

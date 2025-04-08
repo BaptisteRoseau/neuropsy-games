@@ -166,7 +166,7 @@ class CreateGameWindow(tk.Toplevel):
             messagebox.showerror("Error", str(e))
             traceback.print_exc()
         else:
-            game = self.db.get_game(game_title=game.title)[0]
+            game = self.db.get_game(game_title=game.title)
             if game.image:
                 try:
                     game = self._save_and_update_image(game)

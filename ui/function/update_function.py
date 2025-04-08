@@ -37,7 +37,7 @@ class UpdateFunctionWindow(tk.Toplevel):
             messagebox.showerror("Error", "Both fields must be filled!")
             return
 
-        function = self.db.get_cognitive_function(function_name=selected_name)[0]
+        function = self.db.get_cognitive_function(function_name=selected_name)
         function.name = new_name
 
         try:
