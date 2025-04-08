@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 from database import Database
-from ui.game_crud import GameCRUDFrame
+from ui.game.game_crud import GameCRUDFrame
 from ui.category_crud import CategoryCRUDFrame
 from ui.function_crud import FunctionCRUDFrame
 from ui.search_bar import SearchBarFrame
-from ui.game_list import GameListFrame
+from ui.game.game_list import GameListFrame
 
 class MainApp(tk.Tk):
     def __init__(self, db: Database):

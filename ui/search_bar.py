@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import logging
 
-from ui.game_detail import GameDetailFrame
+from ui.game.game_detail import GameDetailFrame
 from database import Database
 
 logger = logging.getLogger(__name__)
