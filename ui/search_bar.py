@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 # TODO: Refresh the cognitive functions and categories dynamically
 # TODO: Copy and rename images in the "pictures" folder before storing in the database
-# TODO: Fix database searching
+# TODO: Fix database searching for filters
+# TODO: Rename database functions to differ get_gameS and get_game -> fix errors
 
 class SearchBarFrame(ttk.Frame):
     db: Database

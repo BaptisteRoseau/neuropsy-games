@@ -1,9 +1,12 @@
 import os
-
+import traceback
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+
 from database import Database
 from models import Game, Material
+
+IMAGES_DIR: str = "./images"
 
 
 class CreateGameWindow(tk.Toplevel):
@@ -103,11 +106,21 @@ class CreateGameWindow(tk.Toplevel):
         if file_path:
             self.image_path.set(file_path)
 
-    def _save_image(self, image_path: str):
-        # create ./images directory if it doesn't exist
-        if not os.path.exists("./images"):
-            os.makedirs("./images")
-        pass
+    def _save_and_update_image(self, game: Game) -> Game:
+        """
+        Copy the image in a local directory and update the game object with the new path.
+        """
+        if not game.image:
+            return game
+
+        os.makedirs(IMAGES_DIR, exist_ok=True)
+        file_name = str(game.id) + "." + os.path.basename(game.image).split(".")[-1]
+        new_path = os.path.join(IMAGES_DIR, file_name)
+        with open(game.image, "rb") as src_file:
+            with open(new_path, "wb") as dest_file:
+                dest_file.write(src_file.read())
+
+        return game
 
     def _game_from_form(self):
         title = self.title_entry.get()
@@ -148,10 +161,20 @@ class CreateGameWindow(tk.Toplevel):
         game = self._game_from_form()
         try:
             self.db.add_game(game)
-            messagebox.showinfo("Success", "Game added successfully!")
             self.destroy()
         except Exception as e:
             messagebox.showerror("Error", str(e))
+            traceback.print_exc()
+        else:
+            game = self.db.get_game(game_title=game.title)[0]
+            if game.image:
+                try:
+                    game = self._save_and_update_image(game)
+                    self.db.update_game(game)
+                except Exception as e:
+                    messagebox.showerror("Warning", f"Failed to save image: {e}")
+                    traceback.print_exc()
+            messagebox.showinfo("Success", "Game added successfully!")
 
     def _populate_form(self, game: Game):
         # Populate title and description
