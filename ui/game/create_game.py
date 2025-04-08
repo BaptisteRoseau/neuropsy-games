@@ -1,7 +1,9 @@
+import os
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from database import Database
-from models import Game, Material, CognitiveCategory, CognitiveFunction
+from models import Game, Material
 
 
 class CreateGameWindow(tk.Toplevel):
@@ -101,6 +103,12 @@ class CreateGameWindow(tk.Toplevel):
         if file_path:
             self.image_path.set(file_path)
 
+    def _save_image(self, image_path: str):
+        # create ./images directory if it doesn't exist
+        if not os.path.exists("./images"):
+            os.makedirs("./images")
+        pass
+
     def _game_from_form(self):
         title = self.title_entry.get()
         description = self.description_entry.get()
@@ -161,14 +169,31 @@ class CreateGameWindow(tk.Toplevel):
 
         # Populate categories
         for category_id, (var, weight_slider) in self.categories.items():
-            category = next((cat for cat, weight in game.categories if cat.id == category_id), None)
+            category = next(
+                (cat for cat, weight in game.categories if cat.id == category_id), None
+            )
             if category:
                 var.set(True)
-                weight_slider.set(next(weight for cat, weight in game.categories if cat.id == category_id))
+                weight_slider.set(
+                    next(
+                        weight
+                        for cat, weight in game.categories
+                        if cat.id == category_id
+                    )
+                )
 
         # Populate functions
         for function_id, (var, weight_slider) in self.functions.items():
-            function = next((func for func, weight in game.functions if func.id == function_id), None)
+            function = next(
+                (func for func, weight in game.functions if func.id == function_id),
+                None,
+            )
             if function:
                 var.set(True)
-                weight_slider.set(next(weight for func, weight in game.functions if func.id == function_id))
+                weight_slider.set(
+                    next(
+                        weight
+                        for func, weight in game.functions
+                        if func.id == function_id
+                    )
+                )

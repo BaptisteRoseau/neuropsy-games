@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-
+from ui.game.game_detail import GameDetailFrame
 from database import Database
 
 
@@ -14,15 +14,26 @@ class GameListFrame(ttk.Frame):
         # Title
         ttk.Label(self, text="Game List", font=("Arial", 16)).pack(pady=10)
 
-        # Listbox
-        self.listbox = tk.Listbox(self)
-        self.listbox.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        # Scrollable container for GameDetailFrames
+        self.canvas = tk.Canvas(self)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # Populate listbox
-        self._populate_list()
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
 
-    def _populate_list(self):
-        # Fetch games and populate the listbox
-        games = self.db.get_all_games()
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
+        )
+
+    def update_games(self, games):
+        # Clear existing widgets
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+
+        # Populate the scrollable frame with new GameDetailFrames
         for game in games:
-            self.listbox.insert(tk.END, game.title)
+            GameDetailFrame(self.scrollable_frame, game).pack(fill=tk.X, pady=5)

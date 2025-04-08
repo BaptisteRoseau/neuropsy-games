@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS games (
     `id` INTEGER PRIMARY KEY AUTOINCREMENT,
     `title` TEXT NOT NULL UNIQUE,
     `description` TEXT NOT NULL,
-    `cognitive_functions` TEXT, -- Stores [(function_id, weight)] as JSON
-    `cognitive_categories` TEXT, -- Stores [(category_id, weight)] as JSON
+    `cognitive_functions` JSON, -- Stores [(function_id, weight)] as JSON
+    `cognitive_categories` JSON, -- Stores [(category_id, weight)] as JSON
     `materials` TEXT,
     `image` TEXT,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP

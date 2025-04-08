@@ -34,9 +34,9 @@ def handle_sqlite_exceptions(func):
         try:
             return func(*args, **kwargs)
         except sqlite3.IntegrityError as e:
-            raise DuplicateError("A unique constraint was violated.") from e
+            raise DuplicateError(f"A unique constraint was violated: {e}") from e
         except sqlite3.Error as e:
-            raise DatabaseError("An error occurred with the database.") from e
+            raise DatabaseError(f"An error occurred with the database: {e}") from e
 
     return wrapper
 
@@ -387,9 +387,11 @@ class Database:
 
         # Filter by cognitive categories
         if cognitive_categories_ids:
-            query += " AND (" + " OR ".join(
-                ["json_each.value = ?"] * len(cognitive_categories_ids)
-            ) + ")"
+            query += (
+                " AND ("
+                + " OR ".join(["json_each.value = ?"] * len(cognitive_categories_ids))
+                + ")"
+            )
             params.extend(cognitive_categories_ids)
             query = f"""
                 {query}
@@ -401,9 +403,11 @@ class Database:
 
         # Filter by cognitive functions
         if cognitive_functions_ids:
-            query += " AND (" + " OR ".join(
-                ["json_each.value = ?"] * len(cognitive_functions_ids)
-            ) + ")"
+            query += (
+                " AND ("
+                + " OR ".join(["json_each.value = ?"] * len(cognitive_functions_ids))
+                + ")"
+            )
             params.extend(cognitive_functions_ids)
             query = f"""
                 {query}
@@ -416,9 +420,11 @@ class Database:
         # Filter by materials
         if materials:
             material_names = [material.name for material in materials]
-            query += " AND (" + " OR ".join(
-                ["json_each.value = ?"] * len(material_names)
-            ) + ")"
+            query += (
+                " AND ("
+                + " OR ".join(["json_each.value = ?"] * len(material_names))
+                + ")"
+            )
             params.extend(material_names)
             query = f"""
                 {query}
