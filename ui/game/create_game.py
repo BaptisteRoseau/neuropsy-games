@@ -192,18 +192,10 @@ class CreateGameWindow(tk.Toplevel):
 
         # Populate categories
         for category_id, (var, weight_slider) in self.categories.items():
-            category = next(
-                (cat for cat, weight in game.categories if cat.id == category_id), None
-            )
+            category = next((cat for cat, weight in game.categories if cat.id == category_id), None)
             if category:
                 var.set(True)
-                weight_slider.set(
-                    next(
-                        weight
-                        for cat, weight in game.categories
-                        if cat.id == category_id
-                    )
-                )
+                weight_slider.set(next(weight for cat, weight in game.categories if cat.id == category_id))
 
         # Populate functions
         for function_id, (var, weight_slider) in self.functions.items():
@@ -213,10 +205,4 @@ class CreateGameWindow(tk.Toplevel):
             )
             if function:
                 var.set(True)
-                weight_slider.set(
-                    next(
-                        weight
-                        for func, weight in game.functions
-                        if func.id == function_id
-                    )
-                )
+                weight_slider.set(next(weight for func, weight in game.functions if func.id == function_id))

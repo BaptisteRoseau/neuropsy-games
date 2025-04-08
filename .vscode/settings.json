@@ -12,5 +12,6 @@
             "name": "Database"
         }
     ],
-    "sqltools.useNodeRuntime": true
+    "sqltools.useNodeRuntime": true,
+    "ruff.lineLength": 120
 }

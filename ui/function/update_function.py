@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from models import CognitiveFunction
 from database import Database
+
 
 class UpdateFunctionWindow(tk.Toplevel):
     def __init__(self, parent, db: Database):

@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from models import CognitiveCategory
 from database import Database
 
+
 class AddCategoryWindow(tk.Toplevel):
     def __init__(self, parent, db: Database):
         super().__init__(parent)

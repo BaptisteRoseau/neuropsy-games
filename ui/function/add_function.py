@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from models import CognitiveFunction
 from database import Database
 
+
 class AddFunctionWindow(tk.Toplevel):
     def __init__(self, parent, db: Database):
         super().__init__(parent)

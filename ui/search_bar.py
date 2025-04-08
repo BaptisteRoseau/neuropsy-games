@@ -44,9 +44,7 @@ class SearchBarFrame(ttk.Frame):
         ttk.Label(filter_frame, text="Material:").grid(row=0, column=0, padx=5)
         self.material_vars = {material: tk.BooleanVar() for material in Material}
         for i, (material, var) in enumerate(self.material_vars.items()):
-            ttk.Checkbutton(filter_frame, text=material.name, variable=var).grid(
-                row=0, column=i + 1, padx=5
-            )
+            ttk.Checkbutton(filter_frame, text=material.name, variable=var).grid(row=0, column=i + 1, padx=5)
 
         # Category filter
         ttk.Label(filter_frame, text="Category:").grid(row=1, column=0, padx=5)
@@ -57,9 +55,7 @@ class SearchBarFrame(ttk.Frame):
         for i, category in enumerate(categories):
             var = tk.BooleanVar()
             self.category_vars[category.name] = (var, category.id)
-            ttk.Checkbutton(self.category_frame, text=category.name, variable=var).grid(
-                row=0, column=i, padx=5
-            )
+            ttk.Checkbutton(self.category_frame, text=category.name, variable=var).grid(row=0, column=i, padx=5)
 
         # Function filter
         ttk.Label(filter_frame, text="Function:").grid(row=2, column=0, padx=5)
@@ -70,9 +66,7 @@ class SearchBarFrame(ttk.Frame):
         for i, function in enumerate(functions):
             var = tk.BooleanVar()
             self.function_vars[function.name] = (var, function.id)
-            ttk.Checkbutton(self.function_frame, text=function.name, variable=var).grid(
-                row=0, column=i, padx=5
-            )
+            ttk.Checkbutton(self.function_frame, text=function.name, variable=var).grid(row=0, column=i, padx=5)
 
         # Search Button
         ttk.Button(self, text="Search", command=self._search).pack(pady=10)
@@ -90,15 +84,9 @@ class SearchBarFrame(ttk.Frame):
     def _search(self):
         # Collect filters
         game_title = self.search_var.get() if len(self.search_var.get()) >= 2 else None
-        materials = [
-            material for material, var in self.material_vars.items() if var.get()
-        ]
-        category_ids = [
-            _id for _, (var, _id) in self.category_vars.items() if var.get()
-        ]
-        function_ids = [
-            _id for _, (var, _id) in self.function_vars.items() if var.get()
-        ]
+        materials = [material for material, var in self.material_vars.items() if var.get()]
+        category_ids = [_id for _, (var, _id) in self.category_vars.items() if var.get()]
+        function_ids = [_id for _, (var, _id) in self.function_vars.items() if var.get()]
 
         try:
             # Fetch games from the database

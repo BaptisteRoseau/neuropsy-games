@@ -66,15 +66,9 @@ class Database:
             (
                 game.title,
                 game.description,
-                json.dumps(
-                    [(func.id, weight) for func, weight in game.functions]
-                ),  # Serialize function IDs
-                json.dumps(
-                    [(cat.id, weight) for cat, weight in game.categories]
-                ),  # Serialize category IDs
-                json.dumps(
-                    [material.name for material in game.materials]
-                ),  # Serialize materials
+                json.dumps([(func.id, weight) for func, weight in game.functions]),  # Serialize function IDs
+                json.dumps([(cat.id, weight) for cat, weight in game.categories]),  # Serialize category IDs
+                json.dumps([material.name for material in game.materials]),  # Serialize materials
                 game.image,
             ),
         )
@@ -150,20 +144,14 @@ class Database:
         for game_id, categories_json in cursor.fetchall():
             if categories_json:
                 categories = json.loads(categories_json)
-                updated_categories = [
-                    (cat_id, weight)
-                    for cat_id, weight in categories
-                    if cat_id != category_id
-                ]
+                updated_categories = [(cat_id, weight) for cat_id, weight in categories if cat_id != category_id]
                 self.con.execute(
                     "UPDATE games SET cognitive_categories = ? WHERE id = ?",
                     (json.dumps(updated_categories), game_id),
                 )
 
         # Delete the cognitive category
-        self.con.execute(
-            "DELETE FROM cognitive_categories WHERE id = ?", (category_id,)
-        )
+        self.con.execute("DELETE FROM cognitive_categories WHERE id = ?", (category_id,))
         self.con.commit()
 
     @handle_sqlite_exceptions
@@ -204,11 +192,7 @@ class Database:
         for game_id, functions_json in cursor.fetchall():
             if functions_json:
                 functions = json.loads(functions_json)
-                updated_functions = [
-                    (func_id, weight)
-                    for func_id, weight in functions
-                    if func_id != function_id
-                ]
+                updated_functions = [(func_id, weight) for func_id, weight in functions if func_id != function_id]
                 self.con.execute(
                     "UPDATE games SET cognitive_functions = ? WHERE id = ?",
                     (json.dumps(updated_functions), game_id),
@@ -224,17 +208,13 @@ class Database:
         if game_id:
             cursor = self.con.execute("SELECT * FROM games WHERE id = ?", (game_id,))
         elif game_title:
-            cursor = self.con.execute(
-                "SELECT * FROM games WHERE title = ?", (game_title,)
-            )
+            cursor = self.con.execute("SELECT * FROM games WHERE title = ?", (game_title,))
         else:
             raise ValueError("Either game_id or game_title must be provided")
 
         row = cursor.fetchone()
         if not row:
-            raise NotFoundError(
-                f"Game with ID {game_id} or title {game_title} not found."
-            )
+            raise NotFoundError(f"Game with ID {game_id} or title {game_title} not found.")
 
         game = Game(
             id=row[0],
@@ -244,12 +224,10 @@ class Database:
                 Material[material] for material in json.loads(row[5] or "[]")
             ],  # Handle None or empty string for materials
             categories=[
-                (self.get_cognitive_category_by_id(cat[0]), cat[1])
-                for cat in json.loads(row[4] or "[]")
+                (self.get_cognitive_category_by_id(cat[0]), cat[1]) for cat in json.loads(row[4] or "[]")
             ],  # Deserialize category IDs
             functions=[
-                (self.get_cognitive_function_by_id(func[0]), func[1])
-                for func in json.loads(row[3] or "[]")
+                (self.get_cognitive_function_by_id(func[0]), func[1]) for func in json.loads(row[3] or "[]")
             ],  # Deserialize function IDs
             image=row[6],
         )
@@ -257,14 +235,10 @@ class Database:
         return game
 
     @handle_sqlite_exceptions
-    def get_cognitive_category(
-        self, category_id: int = None, category_name: str = None
-    ) -> CognitiveCategory:
+    def get_cognitive_category(self, category_id: int = None, category_name: str = None) -> CognitiveCategory:
         logger.info("Getting cognitive category")
         if category_id:
-            cursor = self.con.execute(
-                "SELECT * FROM cognitive_categories WHERE id = ?", (category_id,)
-            )
+            cursor = self.con.execute("SELECT * FROM cognitive_categories WHERE id = ?", (category_id,))
         elif category_name:
             cursor = self.con.execute(
                 "SELECT * FROM cognitive_categories WHERE name = ?",
@@ -275,22 +249,16 @@ class Database:
 
         row = cursor.fetchone()
         if not row:
-            raise NotFoundError(
-                f"Cognitive category with ID {category_id} or name {category_name} not found."
-            )
+            raise NotFoundError(f"Cognitive category with ID {category_id} or name {category_name} not found.")
 
         category = CognitiveCategory(id=row[0], name=row[1])
         return category
 
     @handle_sqlite_exceptions
-    def get_cognitive_function(
-        self, function_id: int = None, function_name: str = None
-    ) -> CognitiveFunction:
+    def get_cognitive_function(self, function_id: int = None, function_name: str = None) -> CognitiveFunction:
         logger.info("Getting cognitive function")
         if function_id:
-            cursor = self.con.execute(
-                "SELECT * FROM cognitive_functions WHERE id = ?", (function_id,)
-            )
+            cursor = self.con.execute("SELECT * FROM cognitive_functions WHERE id = ?", (function_id,))
         elif function_name:
             cursor = self.con.execute(
                 "SELECT * FROM cognitive_functions WHERE name = ?",
@@ -301,9 +269,7 @@ class Database:
 
         row = cursor.fetchone()
         if not row:
-            raise NotFoundError(
-                f"Cognitive function with ID {function_id} or name {function_name} not found."
-            )
+            raise NotFoundError(f"Cognitive function with ID {function_id} or name {function_name} not found.")
 
         function = CognitiveFunction(id=row[0], name=row[1])
         return function
@@ -350,9 +316,7 @@ class Database:
 
     @handle_sqlite_exceptions
     def get_cognitive_category_by_id(self, category_id: int) -> CognitiveCategory:
-        cursor = self.con.execute(
-            "SELECT * FROM cognitive_categories WHERE id = ?", (category_id,)
-        )
+        cursor = self.con.execute("SELECT * FROM cognitive_categories WHERE id = ?", (category_id,))
         result = cursor.fetchone()
         if result is None:
             raise NotFoundError(f"Cognitive category with ID {category_id} not found.")
@@ -360,9 +324,7 @@ class Database:
 
     @handle_sqlite_exceptions
     def get_cognitive_function_by_id(self, function_id: int) -> CognitiveFunction:
-        cursor = self.con.execute(
-            "SELECT * FROM cognitive_functions WHERE id = ?", (function_id,)
-        )
+        cursor = self.con.execute("SELECT * FROM cognitive_functions WHERE id = ?", (function_id,))
         result = cursor.fetchone()
         if result is None:
             raise NotFoundError(f"Cognitive function with ID {function_id} not found.")
@@ -394,50 +356,38 @@ class Database:
 
         # Filter by cognitive categories
         if cognitive_categories_ids:
-            query += (
-                " AND ("
-                + " OR ".join(["json_extract(json, path) = ?"] * len(cognitive_categories_ids))
-                + ")"
-            )
+            query += " AND (" + " OR ".join(["json_extract(json, path) = ?"] * len(cognitive_categories_ids)) + ")"
             params.extend(cognitive_categories_ids)
             query = f"""
                 {query}
                 AND EXISTS (
                     SELECT 1 FROM json_each(games.cognitive_categories)
-                    WHERE json_each.value IN ({','.join(['?'] * len(cognitive_categories_ids))})
+                    WHERE json_each.value IN ({",".join(["?"] * len(cognitive_categories_ids))})
                 )
             """
 
         # Filter by cognitive functions
         if cognitive_functions_ids:
-            query += (
-                " AND ("
-                + " OR ".join(["json_each.value = ?"] * len(cognitive_functions_ids))
-                + ")"
-            )
+            query += " AND (" + " OR ".join(["json_each.value = ?"] * len(cognitive_functions_ids)) + ")"
             params.extend(cognitive_functions_ids)
             query = f"""
                 {query}
                 AND EXISTS (
                     SELECT 1 FROM json_each(games.cognitive_functions)
-                    WHERE json_each.value IN ({','.join(['?'] * len(cognitive_functions_ids))})
+                    WHERE json_each.value IN ({",".join(["?"] * len(cognitive_functions_ids))})
                 )
             """
 
         # Filter by materials
         if materials:
             material_names = [material.name for material in materials]
-            query += (
-                " AND ("
-                + " OR ".join(["json_each.value = ?"] * len(material_names))
-                + ")"
-            )
+            query += " AND (" + " OR ".join(["json_each.value = ?"] * len(material_names)) + ")"
             params.extend(material_names)
             query = f"""
                 {query}
                 AND EXISTS (
                     SELECT 1 FROM json_each(games.materials)
-                    WHERE json_each.value IN ({','.join(['?'] * len(material_names))})
+                    WHERE json_each.value IN ({",".join(["?"] * len(material_names))})
                 )
             """
 
@@ -449,16 +399,10 @@ class Database:
                 id=row[0],
                 title=row[1],
                 description=row[2],
-                materials=[
-                    Material[material] for material in json.loads(row[5] or "[]")
-                ],
-                categories=[
-                    (self.get_cognitive_category_by_id(cat[0]), cat[1])
-                    for cat in json.loads(row[4] or "[]")
-                ],
+                materials=[Material[material] for material in json.loads(row[5] or "[]")],
+                categories=[(self.get_cognitive_category_by_id(cat[0]), cat[1]) for cat in json.loads(row[4] or "[]")],
                 functions=[
-                    (self.get_cognitive_function_by_id(func[0]), func[1])
-                    for func in json.loads(row[3] or "[]")
+                    (self.get_cognitive_function_by_id(func[0]), func[1]) for func in json.loads(row[3] or "[]")
                 ],
                 image=row[6],
             )

@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 NO_IMAGE_PATH = "assets/no_image.png"
 
+
 class GameDetailFrame(ttk.Frame):
     def __init__(self, parent, game: Game):
         super().__init__(parent)
@@ -31,9 +32,7 @@ class GameDetailFrame(ttk.Frame):
             self.image_label.pack()
         except Exception as e:
             logger.error(f"Error loading image: {e}")
-            self.image_label = ttk.Label(
-                self.image_frame, text="Image not available"
-            )
+            self.image_label = ttk.Label(self.image_frame, text="Image not available")
             self.image_label.pack()
 
         # Right section: Game details
@@ -51,24 +50,16 @@ class GameDetailFrame(ttk.Frame):
             wraplength=400,
         ).pack(anchor=tk.W, pady=5)
 
-        ttk.Label(
-            self.details_frame, text="Materials:", font=("Arial", 12, "bold")
-        ).pack(anchor=tk.W, pady=5)
+        ttk.Label(self.details_frame, text="Materials:", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=5)
         for material in self.game.materials:
             ttk.Label(self.details_frame, text=f"- {material.name}").pack(anchor=tk.W)
 
-        ttk.Label(
-            self.details_frame, text="Cognitive Categories:", font=("Arial", 12, "bold")
-        ).pack(anchor=tk.W, pady=5)
+        ttk.Label(self.details_frame, text="Cognitive Categories:", font=("Arial", 12, "bold")).pack(
+            anchor=tk.W, pady=5
+        )
         for category, weight in self.game.categories:
-            ttk.Label(
-                self.details_frame, text=f"- {category.name} ({weight})"
-            ).pack(anchor=tk.W)
+            ttk.Label(self.details_frame, text=f"- {category.name} ({weight})").pack(anchor=tk.W)
 
-        ttk.Label(
-            self.details_frame, text="Cognitive Functions:", font=("Arial", 12, "bold")
-        ).pack(anchor=tk.W, pady=5)
+        ttk.Label(self.details_frame, text="Cognitive Functions:", font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=5)
         for function, weight in self.game.functions:
-            ttk.Label(
-                self.details_frame, text=f"- {function.name} ({weight})"
-            ).pack(anchor=tk.W)
+            ttk.Label(self.details_frame, text=f"- {function.name} ({weight})").pack(anchor=tk.W)

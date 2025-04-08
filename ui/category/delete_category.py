@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from database import Database
 
+
 class DeleteCategoryWindow(tk.Toplevel):
     def __init__(self, parent, db: Database):
         super().__init__(parent)

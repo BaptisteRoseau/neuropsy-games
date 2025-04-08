@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from models import CognitiveCategory
 from database import Database
+
 
 class UpdateCategoryWindow(tk.Toplevel):
     def __init__(self, parent, db: Database):
