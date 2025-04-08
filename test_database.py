@@ -33,13 +33,19 @@ class TestDatabase(unittest.TestCase):
     def test_add_and_get_game_with_image(self):
         category = CognitiveCategory(name="Memory")
         function = CognitiveFunction(name="Attention")
+        self.db.add_cognitive_category(category)
+        self.db.add_cognitive_function(function)
+
+        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+
         game = Game(
             title="Game with Image",
             description="A game with an image",
             image="image_path.png",
             materials=[Material.VISUAL, Material.VERBAL],
-            categories=[(category, 5)],
-            functions=[(function, 3)],
+            categories=[(CognitiveCategory(id=category_id, name="Memory"), 5)],
+            functions=[(CognitiveFunction(id=function_id, name="Attention"), 3)],
         )
         self.db.add_game(game)
 
@@ -51,13 +57,19 @@ class TestDatabase(unittest.TestCase):
     def test_add_and_get_game_without_image(self):
         category = CognitiveCategory(name="Memory")
         function = CognitiveFunction(name="Attention")
+        self.db.add_cognitive_category(category)
+        self.db.add_cognitive_function(function)
+
+        category_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+        function_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+
         game = Game(
             title="Game without Image",
             description="A game without an image",
             image=None,
             materials=[Material.TACTILE],
-            categories=[(category, 5)],
-            functions=[(function, 3)],
+            categories=[(CognitiveCategory(id=category_id, name="Memory"), 5)],
+            functions=[(CognitiveFunction(id=function_id, name="Attention"), 3)],
         )
         self.db.add_game(game)
 
@@ -170,15 +182,13 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(deleted_functions), 0)
 
     def test_update_and_delete_game(self):
-        category = CognitiveCategory(name="Memory")
-        function = CognitiveFunction(name="Attention")
         game = Game(
             title="Game to Update",
             description="A game to be updated",
             image="image_path.png",
             materials=[Material.VISUAL],
-            categories=[(category, 5)],
-            functions=[(function, 3)],
+            categories=[],
+            functions=[],
         )
         self.db.add_game(game)
 

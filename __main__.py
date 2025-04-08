@@ -10,9 +10,10 @@ from ui.confirm_window import ConfirmWindow
 
 logger = logging.getLogger(__name__)
 
-# FIXME: Saved cognitive functions and categories are saved under "Function Name"
-# and "Category Name" instead of their IDs.
-
+#TODO:
+# - Copy images to an asset folder, save the relative path
+# - Save cognitive categories and functions ID instead of name in the DB
+# 
 
 class Window(tk.Tk):
     def __init__(self, db: Database):
@@ -158,14 +159,16 @@ class Window(tk.Tk):
             logger.error(f"Duplicate cognitive function error: {e}")
 
     def _refresh_cognitive_categories(self):
-        # Clear existing categories
-        # TODO: Add a method to clear existing categories in AddGameFrame
-        pass
+        # Clear and rebuild the add_game_frame
+        self.add_game_frame.destroy()
+        self.add_game_frame = AddGameFrame(self, self.db, self._ask_then_add_game)
+        self.add_game_frame.pack(fill=tk.X, padx=10, pady=10)
 
     def _refresh_cognitive_functions(self):
-        # Clear existing functions
-        # TODO: Add a method to clear existing functions in AddGameFrame
-        pass
+        # Clear and rebuild the add_game_frame
+        self.add_game_frame.destroy()
+        self.add_game_frame = AddGameFrame(self, self.db, self._ask_then_add_game)
+        self.add_game_frame.pack(fill=tk.X, padx=10, pady=10)
 
     def _ask_then_add_game(self):
         confirm_window = ConfirmWindow(self, "Are you sure you want to add this game?")

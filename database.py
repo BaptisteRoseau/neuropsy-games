@@ -67,11 +67,11 @@ class Database:
                 game.title,
                 game.description,
                 json.dumps(
-                    [(func.name, weight) for func, weight in game.functions]
-                ),  # Serialize functions
+                    [(func.id, weight) for func, weight in game.functions]
+                ),  # Serialize function IDs
                 json.dumps(
-                    [(cat.name, weight) for cat, weight in game.categories]
-                ),  # Serialize categories
+                    [(cat.id, weight) for cat, weight in game.categories]
+                ),  # Serialize category IDs
                 json.dumps(
                     [material.name for material in game.materials]
                 ),  # Serialize materials
@@ -95,8 +95,8 @@ class Database:
             (
                 game.title,
                 game.description,
-                json.dumps([(func.name, weight) for func, weight in game.functions]),
-                json.dumps([(cat.name, weight) for cat, weight in game.categories]),
+                json.dumps([(func.id, weight) for func, weight in game.functions]),
+                json.dumps([(cat.id, weight) for cat, weight in game.categories]),
                 json.dumps([material.name for material in game.materials]),
                 game.image,
                 game.id,
@@ -207,13 +207,13 @@ class Database:
                     Material[material] for material in json.loads(row[5] or "[]")
                 ],  # Handle None or empty string for materials
                 categories=[
-                    (CognitiveCategory(id=None, name=cat[0]), cat[1])
+                    (self.get_cognitive_category_by_id(cat[0]), cat[1])
                     for cat in json.loads(row[4] or "[]")
-                ],  # Handle None or empty string for categories
+                ],  # Deserialize category IDs
                 functions=[
-                    (CognitiveFunction(id=None, name=func[0]), func[1])
+                    (self.get_cognitive_function_by_id(func[0]), func[1])
                     for func in json.loads(row[3] or "[]")
-                ],  # Handle None or empty string for functions
+                ],  # Deserialize function IDs
                 image=row[6],
             )
             games.append(game)
