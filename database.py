@@ -144,6 +144,21 @@ class Database:
         if category_id is None or category_id < 0:
             raise ValueError("Cognitive Category ID must be a positive number")
         logger.info("Deleting cognitive category with id " + str(category_id))
+        
+        # Update games to remove references to the deleted category
+        cursor = self.con.execute("SELECT id, cognitive_categories FROM games")
+        for game_id, categories_json in cursor.fetchall():
+            if categories_json:
+                categories = json.loads(categories_json)
+                updated_categories = [
+                    (cat_id, weight) for cat_id, weight in categories if cat_id != category_id
+                ]
+                self.con.execute(
+                    "UPDATE games SET cognitive_categories = ? WHERE id = ?",
+                    (json.dumps(updated_categories), game_id),
+                )
+        
+        # Delete the cognitive category
         self.con.execute(
             "DELETE FROM cognitive_categories WHERE id = ?", (category_id,)
         )
@@ -181,6 +196,21 @@ class Database:
         if function_id is None or function_id < 0:
             raise ValueError("Cognitive Function ID must be a positive number")
         logger.info("Deleting cognitive function with id " + str(function_id))
+        
+        # Update games to remove references to the deleted function
+        cursor = self.con.execute("SELECT id, cognitive_functions FROM games")
+        for game_id, functions_json in cursor.fetchall():
+            if functions_json:
+                functions = json.loads(functions_json)
+                updated_functions = [
+                    (func_id, weight) for func_id, weight in functions if func_id != function_id
+                ]
+                self.con.execute(
+                    "UPDATE games SET cognitive_functions = ? WHERE id = ?",
+                    (json.dumps(updated_functions), game_id),
+                )
+        
+        # Delete the cognitive function
         self.con.execute("DELETE FROM cognitive_functions WHERE id = ?", (function_id,))
         self.con.commit()
 

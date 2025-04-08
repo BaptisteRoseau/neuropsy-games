@@ -318,6 +318,60 @@ class TestDatabase(unittest.TestCase):
             str(context.exception), "Cognitive function with ID 999 not found."
         )
 
+    def test_delete_cognitive_category_updates_games(self):
+        category1 = CognitiveCategory(name="Memory")
+        category2 = CognitiveCategory(name="Language")
+        self.db.add_cognitive_category(category1)
+        self.db.add_cognitive_category(category2)
+
+        category1_id = self.db.get_cognitive_category(category_name="Memory")[0].id
+        category2_id = self.db.get_cognitive_category(category_name="Language")[0].id
+
+        game = Game(
+            title="Game with Categories",
+            description="A game with categories",
+            image=None,
+            materials=[],
+            categories=[(CognitiveCategory(id=category1_id, name="Memory"), 5), 
+                        (CognitiveCategory(id=category2_id, name="Language"), 3)],
+            functions=[],
+        )
+        self.db.add_game(game)
+
+        self.db.delete_cognitive_category(category1_id)
+
+        games = self.db.get_game(game_title="Game with Categories")
+        self.assertEqual(len(games), 1)
+        self.assertEqual(len(games[0].categories), 1)
+        self.assertEqual(games[0].categories[0][0].id, category2_id)
+
+    def test_delete_cognitive_function_updates_games(self):
+        function1 = CognitiveFunction(name="Attention")
+        function2 = CognitiveFunction(name="Perception")
+        self.db.add_cognitive_function(function1)
+        self.db.add_cognitive_function(function2)
+
+        function1_id = self.db.get_cognitive_function(function_name="Attention")[0].id
+        function2_id = self.db.get_cognitive_function(function_name="Perception")[0].id
+
+        game = Game(
+            title="Game with Functions",
+            description="A game with functions",
+            image=None,
+            materials=[],
+            categories=[],
+            functions=[(CognitiveFunction(id=function1_id, name="Attention"), 4), 
+                       (CognitiveFunction(id=function2_id, name="Perception"), 2)],
+        )
+        self.db.add_game(game)
+
+        self.db.delete_cognitive_function(function1_id)
+
+        games = self.db.get_game(game_title="Game with Functions")
+        self.assertEqual(len(games), 1)
+        self.assertEqual(len(games[0].functions), 1)
+        self.assertEqual(games[0].functions[0][0].id, function2_id)
+
 
 if __name__ == "__main__":
     unittest.main()
