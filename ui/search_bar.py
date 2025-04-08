@@ -16,9 +16,10 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
         self.selected_game: GameDetailFrame|None = None
 
         # Search bar (Entry widget)
+        ttk.Label(self, text="Search Games", font=("Arial", 16)).pack(pady=10)
         self.search_var = tk.StringVar()
         self.search_entry = ttk.Entry(self, textvariable=self.search_var)
-        self.search_entry.pack(fill=tk.X, padx=5, pady=5)
+        self.search_entry.pack(fill=tk.X, padx=10, pady=5)
         self.search_entry.bind("<KeyRelease>", self._on_key_release)
         self.search_entry.bind(
             "<KeyRelease>",
@@ -29,6 +30,26 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
             ),
             add=True,
         )
+
+        # Filters
+        ttk.Label(self, text="Filters").pack(pady=5)
+        self.filter_frame = ttk.Frame(self)
+        self.filter_frame.pack(fill=tk.X, padx=10)
+
+        ttk.Label(self.filter_frame, text="Material:").grid(row=0, column=0, padx=5)
+        self.material_filter = ttk.Combobox(self.filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"])
+        self.material_filter.grid(row=0, column=1, padx=5)
+
+        ttk.Label(self.filter_frame, text="Category:").grid(row=1, column=0, padx=5)
+        self.category_filter = ttk.Entry(self.filter_frame)
+        self.category_filter.grid(row=1, column=1, padx=5)
+
+        ttk.Label(self.filter_frame, text="Function:").grid(row=2, column=0, padx=5)
+        self.function_filter = ttk.Entry(self.filter_frame)
+        self.function_filter.grid(row=2, column=1, padx=5)
+
+        # Search Button
+        ttk.Button(self, text="Search", command=self._search).pack(pady=10)
 
         # Listbox for autocompletion
         self.result_listbox = tk.Listbox(self)
@@ -64,3 +85,44 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
                 self.parent,
                 self.db.get_game(game_title=selected_game)[0],
             ).pack(fill=tk.BOTH, expand=True)
+
+    def _search(self):
+        # Logic to perform search with filters
+        pass
+
+
+class SearchBarFrame(ttk.Frame):
+    def __init__(self, parent, db):
+        super().__init__(parent)
+        self.db = db
+
+        # Title
+        ttk.Label(self, text="Search Games", font=("Arial", 16)).pack(pady=10)
+
+        # Search bar
+        self.search_var = tk.StringVar()
+        ttk.Entry(self, textvariable=self.search_var).pack(fill=tk.X, padx=10, pady=5)
+
+        # Filters
+        ttk.Label(self, text="Filters").pack(pady=5)
+        filter_frame = ttk.Frame(self)
+        filter_frame.pack(fill=tk.X, padx=10)
+
+        ttk.Label(filter_frame, text="Material:").grid(row=0, column=0, padx=5)
+        self.material_filter = ttk.Combobox(filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"])
+        self.material_filter.grid(row=0, column=1, padx=5)
+
+        ttk.Label(filter_frame, text="Category:").grid(row=1, column=0, padx=5)
+        self.category_filter = ttk.Entry(filter_frame)
+        self.category_filter.grid(row=1, column=1, padx=5)
+
+        ttk.Label(filter_frame, text="Function:").grid(row=2, column=0, padx=5)
+        self.function_filter = ttk.Entry(filter_frame)
+        self.function_filter.grid(row=2, column=1, padx=5)
+
+        # Search Button
+        ttk.Button(self, text="Search", command=self._search).pack(pady=10)
+
+    def _search(self):
+        # Placeholder for search logic
+        print("Search triggered")
