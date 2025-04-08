@@ -1,8 +1,15 @@
 {
     "cSpell.words": [
         "AUTOINCREMENT",
+        "columnspan",
         "executescript",
-        "Neuropsy"
+        "Neuropsy",
+        "padx",
+        "pady",
+        "scrollregion",
+        "textvariable",
+        "wraplength",
+        "yscrollcommand"
     ],
     "sqltools.connections": [
         {
