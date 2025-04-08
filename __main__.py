@@ -7,6 +7,7 @@ from ui.function.function_crud import FunctionCRUDFrame
 from ui.search_bar import SearchBarFrame
 from ui.game.game_list import GameListFrame
 
+
 class MainApp(tk.Tk):
     def __init__(self, db: Database):
         super().__init__()
@@ -37,6 +38,7 @@ class MainApp(tk.Tk):
         # Search and List tab
         search_frame = SearchBarFrame(self, self.db)
         self.notebook.add(search_frame, text="Search & List")
+
 
 if __name__ == "__main__":
     db = Database()

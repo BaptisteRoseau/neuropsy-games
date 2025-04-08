@@ -3,9 +3,10 @@ from tkinter import ttk, messagebox
 
 from database import Database
 
+
 class DeleteGameWindow(tk.Toplevel):
     db: Database
-        
+
     def __init__(self, parent, db: Database):
         super().__init__(parent)
         self.db = db

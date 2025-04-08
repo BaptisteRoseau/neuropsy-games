@@ -13,7 +13,7 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
         super().__init__(parent)
         self.db: Database = db
         self.parent = parent
-        self.selected_game: GameDetailFrame|None = None
+        self.selected_game: GameDetailFrame | None = None
 
         # Search bar (Entry widget)
         ttk.Label(self, text="Search Games", font=("Arial", 16)).pack(pady=10)
@@ -37,7 +37,9 @@ class SearchBarWithAutocompleteFrame(ttk.Frame):
         self.filter_frame.pack(fill=tk.X, padx=10)
 
         ttk.Label(self.filter_frame, text="Material:").grid(row=0, column=0, padx=5)
-        self.material_filter = ttk.Combobox(self.filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"])
+        self.material_filter = ttk.Combobox(
+            self.filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"]
+        )
         self.material_filter.grid(row=0, column=1, padx=5)
 
         ttk.Label(self.filter_frame, text="Category:").grid(row=1, column=0, padx=5)
@@ -109,7 +111,9 @@ class SearchBarFrame(ttk.Frame):
         filter_frame.pack(fill=tk.X, padx=10)
 
         ttk.Label(filter_frame, text="Material:").grid(row=0, column=0, padx=5)
-        self.material_filter = ttk.Combobox(filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"])
+        self.material_filter = ttk.Combobox(
+            filter_frame, values=["All", "Visual", "Verbal", "Tactile", "Auditory"]
+        )
         self.material_filter.grid(row=0, column=1, padx=5)
 
         ttk.Label(filter_frame, text="Category:").grid(row=1, column=0, padx=5)
