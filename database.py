@@ -354,45 +354,11 @@ class Database:
             query += " AND title LIKE ?"
             params.append(f"%{game_title}%")
 
-        # Filter by cognitive categories
-        if cognitive_categories_ids:
-            query += " AND (" + " OR ".join(["json_extract(json, path) = ?"] * len(cognitive_categories_ids)) + ")"
-            params.extend(cognitive_categories_ids)
-            query = f"""
-                {query}
-                AND EXISTS (
-                    SELECT 1 FROM json_each(games.cognitive_categories)
-                    WHERE json_each.value IN ({",".join(["?"] * len(cognitive_categories_ids))})
-                )
-            """
-
-        # Filter by cognitive functions
-        if cognitive_functions_ids:
-            query += " AND (" + " OR ".join(["json_each.value = ?"] * len(cognitive_functions_ids)) + ")"
-            params.extend(cognitive_functions_ids)
-            query = f"""
-                {query}
-                AND EXISTS (
-                    SELECT 1 FROM json_each(games.cognitive_functions)
-                    WHERE json_each.value IN ({",".join(["?"] * len(cognitive_functions_ids))})
-                )
-            """
-
-        # Filter by materials
-        if materials:
-            material_names = [material.name for material in materials]
-            query += " AND (" + " OR ".join(["json_each.value = ?"] * len(material_names)) + ")"
-            params.extend(material_names)
-            query = f"""
-                {query}
-                AND EXISTS (
-                    SELECT 1 FROM json_each(games.materials)
-                    WHERE json_each.value IN ({",".join(["?"] * len(material_names))})
-                )
-            """
-
+        # Fetch games based on title filter
         cursor = self.con.execute(query, params)
         rows = cursor.fetchall()
+
+        # Convert rows to Game objects
         games = []
         for row in rows:
             game = Game(
@@ -407,4 +373,18 @@ class Database:
                 image=row[6],
             )
             games.append(game)
+
+        # Filter games by cognitive categories
+        if cognitive_categories_ids:
+            games = [game for game in games if any(cat[0].id in cognitive_categories_ids for cat in game.categories)]
+
+        # Filter games by cognitive functions
+        if cognitive_functions_ids:
+            games = [game for game in games if any(func[0].id in cognitive_functions_ids for func in game.functions)]
+
+        # Filter games by materials
+        if materials:
+            material_names = [material.name for material in materials]
+            games = [game for game in games if any(material.name in material_names for material in game.materials)]
+
         return games

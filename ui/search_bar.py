@@ -8,8 +8,6 @@ from models import Material
 
 logger = logging.getLogger(__name__)
 
-# TODO: Fix database searching for filters
-
 
 class SearchBarFrame(ttk.Frame):
     db: Database
